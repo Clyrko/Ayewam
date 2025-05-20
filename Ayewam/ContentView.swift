@@ -10,79 +10,207 @@ import CoreData
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
-
     @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
+        sortDescriptors: [NSSortDescriptor(keyPath: \Recipe.name, ascending: true)],
         animation: .default)
-    private var items: FetchedResults<Item>
-
+    private var recipes: FetchedResults<Recipe>
+    
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \Category.name, ascending: true)],
+        animation: .default)
+    private var categories: FetchedResults<Category>
+    
+    @State private var selectedCategory: Category?
+    @State private var searchText = ""
+    
     var body: some View {
         NavigationView {
             List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+                // Categories section
+                Section(header: Text("Categories")) {
+                    ForEach(categories, id: \.self) { category in
+                        Button(action: {
+                            selectedCategory = (selectedCategory == category) ? nil : category
+                        }) {
+                            HStack {
+                                Circle()
+                                    .fill(Color(hex: category.colorHex ?? "#000000"))
+                                    .frame(width: 12, height: 12)
+                                
+                                Text(category.name ?? "Unknown")
+                                
+                                Spacer()
+                                
+                                if selectedCategory == category {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
+                    }
+                    
+                    if selectedCategory != nil {
+                        Button("Clear Filter") {
+                            selectedCategory = nil
+                        }
+                        .foregroundColor(.blue)
                     }
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                
+                // Recipes section
+                Section(header: Text("Recipes")) {
+                    if filteredRecipes.isEmpty {
+                        Text("No recipes found")
+                            .foregroundColor(.secondary)
+                            .italic()
+                    } else {
+                        ForEach(filteredRecipes, id: \.self) { recipe in
+                            NavigationLink {
+                                RecipeDetailPlaceholder(recipe: recipe)
+                            } label: {
+                                RecipeRowView(recipe: recipe)
+                            }
+                        }
                     }
                 }
             }
-            Text("Select an item")
+            .listStyle(InsetGroupedListStyle())
+            .navigationTitle("Ghanaian Recipes")
+            .searchable(text: $searchText, prompt: "Search recipes")
+            
+            // Detail view placeholder (for larger screens)
+            Text("Select a recipe")
+                .font(.largeTitle)
+                .foregroundColor(.secondary)
         }
     }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+    
+    // Filter recipes based on selected category and search text
+    private var filteredRecipes: [Recipe] {
+        recipes.filter { recipe in
+            // Category filter
+            let categoryMatch = selectedCategory == nil || recipe.category == selectedCategory
+            
+            // Search text filter
+            let searchMatch: Bool
+            if searchText.isEmpty {
+                searchMatch = true
+            } else {
+                let nameMatch = recipe.name?.localizedCaseInsensitiveContains(searchText) ?? false
+                let descMatch = recipe.recipeDescription?.localizedCaseInsensitiveContains(searchText) ?? false
+                searchMatch = nameMatch || descMatch
             }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            
+            return categoryMatch && searchMatch
         }
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
+// Placeholder for recipe detail view
+struct RecipeDetailPlaceholder: View {
+    let recipe: Recipe
+    
+    var body: some View {
+        VStack {
+            Text(recipe.name ?? "Unknown Recipe")
+                .font(.title)
+                .padding()
+            
+            Text(recipe.recipeDescription ?? "No description")
+                .padding()
+            
+            Spacer()
+            
+            Text("Full recipe details coming soon!")
+                .italic()
+                .foregroundColor(.secondary)
+        }
+        .navigationTitle(recipe.name ?? "Recipe")
+    }
+}
 
-#Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+// Recipe row component
+struct RecipeRowView: View {
+    let recipe: Recipe
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Recipe image or placeholder
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 60, height: 60)
+                .overlay(
+                    Text(String(recipe.name?.prefix(1) ?? "R"))
+                        .font(.title)
+                        .foregroundColor(.white)
+                )
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(recipe.name ?? "Unknown Recipe")
+                    .font(.headline)
+                
+                if let description = recipe.recipeDescription, !description.isEmpty {
+                    Text(description)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+                
+                HStack(spacing: 12) {
+                    if recipe.prepTime > 0 || recipe.cookTime > 0 {
+                        Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
+                        Text(difficulty)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            
+            Spacer()
+            
+            if recipe.isFavorite {
+                Image(systemName: "heart.fill")
+                    .foregroundColor(.red)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+// Color extension to support hex values
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (255, 0, 0, 0)
+        }
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    }
 }
