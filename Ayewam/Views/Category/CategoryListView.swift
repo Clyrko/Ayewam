@@ -50,7 +50,10 @@ struct CategoryListView: View {
                     HomeRecipeView(initialCategory: category)
                         .navigationTitle(category.name ?? "Recipes")
                 ) {
-                    CategoryCard(category: category)
+                    CategoryCard(
+                        category: category,
+                        recipeCount: viewModel.recipeCount(for: category)
+                    )
                 }
             }
         }
@@ -82,39 +85,49 @@ struct CategoryListView: View {
 // Category Card Component
 struct CategoryCard: View {
     let category: Category
+    let recipeCount: Int
     
     var body: some View {
         VStack {
             // Category color and icon
             ZStack {
                 Rectangle()
-                    .fill(Color(hex: category.colorHex ?? "#767676"))
+                    .fill(Color(hex: category.colorHex ?? Constants.Assets.defaultCategoryColor))
                     .aspectRatio(1.5, contentMode: .fit)
-                    .cornerRadius(12)
+                    .cornerRadius(Constants.UI.standardCornerRadius)
                 
                 if let imageName = category.imageName, !imageName.isEmpty {
-                    Image(systemName: "fork.knife")
-                        .font(.system(size: 40))
+                    Image(systemName: Constants.Assets.defaultFoodIcon)
+                        .font(.system(size: Constants.UI.extraLargeIconSize * 2/3))
                         .foregroundColor(.white.opacity(0.8))
                 } else {
                     Text(String(category.name?.prefix(1) ?? "C"))
-                        .font(.system(size: 40, weight: .bold))
+                        .font(.system(size: Constants.UI.extraLargeIconSize * 2/3, weight: .bold))
                         .foregroundColor(.white.opacity(0.8))
                 }
             }
             
-            // Category name
-            Text(category.name ?? "Unknown")
-                .font(.headline)
-                .fontWeight(.medium)
-                .foregroundColor(.primary)
-                .lineLimit(1)
-                .padding(.top, 8)
-                .padding(.bottom, 4)
+            // Category name and recipe count
+            VStack(spacing: 4) {
+                Text(category.name ?? "Unknown")
+                    .font(.headline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                
+                Text("\(recipeCount) \(Constants.Localization.pluralized(singular: "recipe", plural: "recipes", count: recipeCount))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.top, Constants.UI.smallPadding)
+            .padding(.bottom, 4)
         }
         .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .cornerRadius(Constants.UI.standardCornerRadius)
+        .shadow(color: Color.black.opacity(Constants.UI.standardShadowOpacity),
+                radius: Constants.UI.standardShadowRadius,
+                x: 0,
+                y: Constants.UI.standardShadowY)
     }
 }
 

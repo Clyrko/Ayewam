@@ -66,6 +66,23 @@ extension Recipe {
 
 }
 
+// MARK: Generated accessors for category
+extension Recipe {
+
+    @objc(addCategoryObject:)
+    @NSManaged public func addToCategory(_ value: Category)
+
+    @objc(removeCategoryObject:)
+    @NSManaged public func removeFromCategory(_ value: Category)
+
+    @objc(addCategory:)
+    @NSManaged public func addToCategory(_ values: NSSet)
+
+    @objc(removeCategory:)
+    @NSManaged public func removeFromCategory(_ values: NSSet)
+
+}
+
 extension Recipe : Identifiable {
 
 }

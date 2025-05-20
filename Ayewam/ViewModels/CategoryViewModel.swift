@@ -32,4 +32,13 @@ class CategoryViewModel: ObservableObject {
             self.isLoading = false
         }
     }
+    
+    func recipes(for category: Category) -> [Recipe] {
+        return repository.fetchRecipes(forCategory: category)
+    }
+
+    /// Get the number of recipes in a category
+    func recipeCount(for category: Category) -> Int {
+        return repository.recipeCount(forCategory: category)
+    }
 }

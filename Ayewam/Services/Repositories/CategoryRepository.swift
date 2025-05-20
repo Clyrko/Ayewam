@@ -44,4 +44,19 @@ class CategoryRepository {
             return nil
         }
     }
+    
+    func fetchRecipes(forCategory category: Category) -> [Recipe] {
+        guard let recipes = category.recipes as? Set<Recipe> else {
+            return []
+        }
+        
+        return recipes.sorted {
+            ($0.name ?? "") < ($1.name ?? "")
+        }
+    }
+
+    /// Returns the number of recipes in a category
+    func recipeCount(forCategory category: Category) -> Int {
+        return category.recipes?.count ?? 0
+    }
 }

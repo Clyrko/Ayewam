@@ -141,6 +141,7 @@ class RecipeSeeder {
         recipe.imageName = imageName
         recipe.isFavorite = false
         recipe.category = category
+        
         return recipe
     }
     

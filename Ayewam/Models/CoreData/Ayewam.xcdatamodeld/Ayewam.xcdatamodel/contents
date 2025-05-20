@@ -4,7 +4,7 @@
         <attribute name="colorHex" optional="YES" attributeType="String"/>
         <attribute name="imageName" optional="YES" attributeType="String"/>
         <attribute name="name" attributeType="String" defaultValueString=""/>
-        <relationship name="recipes" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Recipe" inverseName="category" inverseEntity="Recipe"/>
+        <relationship name="recipes" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Recipe" inverseName="category" inverseEntity="Recipe"/>
     </entity>
     <entity name="Ingredient" representedClassName="Ingredient" syncable="YES">
         <attribute name="name" attributeType="String" defaultValueString=""/>
@@ -25,7 +25,7 @@
         <attribute name="recipeDescription" optional="YES" attributeType="String"/>
         <attribute name="region" optional="YES" attributeType="String"/>
         <attribute name="servings" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <relationship name="category" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Category" inverseName="recipes" inverseEntity="Category"/>
+        <relationship name="category" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Category" inverseName="recipes" inverseEntity="Category"/>
         <relationship name="ingredients" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Ingredient" inverseName="recipe" inverseEntity="Ingredient"/>
         <relationship name="steps" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Step" inverseName="recipe" inverseEntity="Step"/>
     </entity>
