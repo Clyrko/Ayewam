@@ -390,17 +390,11 @@ struct TabButton: View {
 // For Preview
 struct RecipeDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        let context = PersistenceController.preview.container.viewContext
-        let fetchRequest: NSFetchRequest<Recipe> = Recipe.fetchRequest()
-        let recipes = try? context.fetch(fetchRequest)
+        let recipe = MockData.previewRecipe(in: previewContext)
+        let viewModel = MockData.mockRecipeViewModel()
         
-        if let recipe = recipes?.first {
-            NavigationView {
-                RecipeDetailView(
-                    recipe: recipe,
-                    viewModel: RecipeViewModel(repository: RecipeRepository(context: context))
-                )
-            }
+        NavigationView {
+            RecipeDetailView(recipe: recipe, viewModel: viewModel)
         }
     }
 }

@@ -34,16 +34,28 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Resources/Localizable.strings,
 			);
 			target = 695693F62DDCC82D00D94B9C /* Ayewam */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		695694702DDCE80400D94B9C /* Exceptions for "Ayewam" folder in "Compile Sources" phase from "Ayewam" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 695693F32DDCC82D00D94B9C /* Sources */;
+			membershipExceptions = (
+				Resources/Localizable.strings,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		695693F92DDCC82D00D94B9C /* Ayewam */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				695694202DDCC82F00D94B9C /* Exceptions for "Ayewam" folder in "Ayewam" target */,
+				695694702DDCE80400D94B9C /* Exceptions for "Ayewam" folder in "Compile Sources" phase from "Ayewam" target */,
 			);
 			path = Ayewam;
 			sourceTree = "<group>";
@@ -205,6 +217,9 @@
 			knownRegions = (
 				en,
 				Base,
+				ak,
+				"ee-GH",
+				"gaa-GH",
 			);
 			mainGroup = 695693EE2DDCC82D00D94B9C;
 			minimizedProjectReferenceProxies = 1;

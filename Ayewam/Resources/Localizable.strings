@@ -1,0 +1,70 @@
+//
+//  Localizable.strings.swift
+//  Ayewam
+//
+//  Created by Justyn Adusei-Prempeh on 5/20/25.
+//
+
+// Tab titles
+"recipesTabTitle" = "Recipes";
+"categoriesTabTitle" = "Categories";
+"favoritesTabTitle" = "Favorites";
+"aboutTabTitle" = "About";
+
+// Navigation titles
+"appTitle" = "Ghanaian Recipes";
+"categoriesTitle" = "Categories";
+"favoritesTitle" = "My Favorites";
+"aboutTitle" = "About Ayewam";
+
+// Recipe-related
+"recipeMinutesAbbreviation" = "min";
+"servingsSingular" = "serving";
+"servingsPlural" = "servings";
+"noRecipesFound" = "No recipes found";
+"tryAdjustingFilters" = "Try adjusting your filters or search terms";
+"checkBackLater" = "Check back later for new recipes";
+"clearFilters" = "Clear Filters";
+"searchRecipesPrompt" = "Search recipes";
+
+// Recipe detail view
+"aboutThisDish" = "About this dish";
+"preparation" = "Preparation";
+"prepTime" = "Prep Time";
+"cookTime" = "Cook Time";
+"ingredients" = "Ingredients";
+"cookingInstructions" = "Cooking Instructions";
+"stepPrefix" = "Step";
+"overview" = "Overview";
+"steps" = "Steps";
+"categoryLabel" = "Category:";
+"regionLabel" = "Region:";
+"noIngredientsAvailable" = "No ingredients available";
+"noStepsAvailable" = "No cooking steps available";
+
+// Favorites
+"loadingFavorites" = "Loading favorites...";
+"noFavoritesYet" = "No Favorites Yet";
+"tapToAddFavorites" = "Tap the heart icon on any recipe to add it to your favorites";
+"removeFavorite" = "Remove";
+
+// Categories
+"exploreCategoriesSubtitle" = "Explore Ghanaian cuisine through these traditional categories";
+"loadingCategories" = "Loading categories...";
+"noCategoriesFound" = "No Categories Found";
+"checkBackForCategories" = "Check back later for new categories";
+
+// About screen
+"appTagline" = "Authentic Ghanaian Recipes";
+"aboutHeading" = "About Ayewam";
+"aboutDescription" = "Ayewam is your guide to authentic Ghanaian cuisine, offering traditional recipes with step-by-step instructions. Explore the rich culinary heritage of Ghana through our carefully curated collection of dishes.";
+"aboutDescription2" = "Whether you're looking to prepare Jollof Rice, Light Soup, or other Ghanaian classics, Ayewam provides you with the knowledge and guidance to create authentic dishes at home.";
+"cuisineHeading" = "Ghanaian Cuisine";
+"cuisineDescription" = "Ghanaian cuisine is known for its flavorful stews, soups, and one-pot dishes. Key ingredients include plantains, cassava, yams, corn, beans, and various proteins. Dishes are often seasoned with aromatic spices and herbs.";
+"versionLabel" = "Version 1.0";
+"copyrightNotice" = "© 2025 Justyn Adusei-Prempeh";
+
+// Error messages
+"genericErrorTitle" = "Oops!";
+"retryButtonLabel" = "Try Again";
+"failedToLoadRecipes" = "We couldn't load your recipes. Please check your connection and try again.";

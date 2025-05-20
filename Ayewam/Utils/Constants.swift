@@ -5,11 +5,13 @@
 //  Created by Justyn Adusei-Prempeh on 5/20/25.
 //
 
+// Constants.swift with Localization Support
+
 import SwiftUI
 
 /// Namespace for app-wide constants
 enum Constants {
-    /// UI-related dimensions and values
+    /// UI-related dimensions and values (no changes needed here)
     enum UI {
         // Common dimensions
         static let standardPadding: CGFloat = 16
@@ -46,74 +48,104 @@ enum Constants {
         static let extraLargeIconSize: CGFloat = 60
     }
     
-    /// String literals and text used throughout the app
+    /// String literals and text used throughout the app - with localization support
     enum Text {
+        // Helper method to get localized string
+        private static func localized(_ key: String, comment: String = "") -> String {
+            return NSLocalizedString(key, comment: comment)
+        }
+        
         // Tab titles
-        static let recipesTabTitle = "Recipes"
-        static let categoriesTabTitle = "Categories"
-        static let favoritesTabTitle = "Favorites"
-        static let aboutTabTitle = "About"
+        static let recipesTabTitle = localized("recipesTabTitle", comment: "Title for recipes tab")
+        static let categoriesTabTitle = localized("categoriesTabTitle", comment: "Title for categories tab")
+        static let favoritesTabTitle = localized("favoritesTabTitle", comment: "Title for favorites tab")
+        static let aboutTabTitle = localized("aboutTabTitle", comment: "Title for about tab")
         
         // Navigation titles
-        static let appTitle = "Ghanaian Recipes"
-        static let categoriesTitle = "Categories"
-        static let favoritesTitle = "My Favorites"
-        static let aboutTitle = "About Ayewam"
+        static let appTitle = localized("appTitle", comment: "Main app title")
+        static let categoriesTitle = localized("categoriesTitle", comment: "Title for categories screen")
+        static let favoritesTitle = localized("favoritesTitle", comment: "Title for favorites screen")
+        static let aboutTitle = localized("aboutTitle", comment: "Title for about screen")
         
         // Recipe-related
-        static let recipeMinutesAbbreviation = "min"
-        static let servingsSingular = "serving"
-        static let servingsPlural = "servings"
-        static let noRecipesFound = "No recipes found"
-        static let tryAdjustingFilters = "Try adjusting your filters or search terms"
-        static let checkBackLater = "Check back later for new recipes"
-        static let clearFilters = "Clear Filters"
-        static let searchRecipesPrompt = "Search recipes"
+        static let recipeMinutesAbbreviation = localized("recipeMinutesAbbreviation", comment: "Abbreviation for minutes")
+        static let servingsSingular = localized("servingsSingular", comment: "Label for a single serving")
+        static let servingsPlural = localized("servingsPlural", comment: "Label for multiple servings")
+        static let noRecipesFound = localized("noRecipesFound", comment: "Message when no recipes are found")
+        static let tryAdjustingFilters = localized("tryAdjustingFilters", comment: "Message suggesting to adjust search filters")
+        static let checkBackLater = localized("checkBackLater", comment: "Message suggesting to check back later for content")
+        static let clearFilters = localized("clearFilters", comment: "Button to clear search filters")
+        static let searchRecipesPrompt = localized("searchRecipesPrompt", comment: "Placeholder for recipe search field")
         
         // Recipe detail view
-        static let aboutThisDish = "About this dish"
-        static let preparation = "Preparation"
-        static let prepTime = "Prep Time"
-        static let cookTime = "Cook Time"
-        static let ingredients = "Ingredients"
-        static let cookingInstructions = "Cooking Instructions"
-        static let stepPrefix = "Step"
-        static let overview = "Overview"
-        static let steps = "Steps"
-        static let categoryLabel = "Category:"
-        static let regionLabel = "Region:"
-        static let noIngredientsAvailable = "No ingredients available"
-        static let noStepsAvailable = "No cooking steps available"
+        static let aboutThisDish = localized("aboutThisDish", comment: "Heading for recipe description")
+        static let preparation = localized("preparation", comment: "Heading for preparation section")
+        static let prepTime = localized("prepTime", comment: "Label for preparation time")
+        static let cookTime = localized("cookTime", comment: "Label for cooking time")
+        static let ingredients = localized("ingredients", comment: "Label for ingredients section")
+        static let cookingInstructions = localized("cookingInstructions", comment: "Label for cooking instructions")
+        static let stepPrefix = localized("stepPrefix", comment: "Prefix for step number (e.g., 'Step 1')")
+        static let overview = localized("overview", comment: "Label for overview tab")
+        static let steps = localized("steps", comment: "Label for steps tab")
+        static let categoryLabel = localized("categoryLabel", comment: "Label for category")
+        static let regionLabel = localized("regionLabel", comment: "Label for region")
+        static let noIngredientsAvailable = localized("noIngredientsAvailable", comment: "Message when no ingredients are available")
+        static let noStepsAvailable = localized("noStepsAvailable", comment: "Message when no steps are available")
         
         // Favorites
-        static let loadingFavorites = "Loading favorites..."
-        static let noFavoritesYet = "No Favorites Yet"
-        static let tapToAddFavorites = "Tap the heart icon on any recipe to add it to your favorites"
-        static let removeFavorite = "Remove"
+        static let loadingFavorites = localized("loadingFavorites", comment: "Message when loading favorites")
+        static let noFavoritesYet = localized("noFavoritesYet", comment: "Message when no favorites exist")
+        static let tapToAddFavorites = localized("tapToAddFavorites", comment: "Instructions for adding favorites")
+        static let removeFavorite = localized("removeFavorite", comment: "Button to remove from favorites")
         
         // Categories
-        static let exploreCategoriesSubtitle = "Explore Ghanaian cuisine through these traditional categories"
-        static let loadingCategories = "Loading categories..."
-        static let noCategoriesFound = "No Categories Found"
-        static let checkBackForCategories = "Check back later for new categories"
+        static let exploreCategoriesSubtitle = localized("exploreCategoriesSubtitle", comment: "Subtitle for categories screen")
+        static let loadingCategories = localized("loadingCategories", comment: "Message when loading categories")
+        static let noCategoriesFound = localized("noCategoriesFound", comment: "Message when no categories are found")
+        static let checkBackForCategories = localized("checkBackForCategories", comment: "Message suggesting to check back for categories")
         
         // About screen
-        static let appTagline = "Authentic Ghanaian Recipes"
-        static let aboutHeading = "About Ayewam"
-        static let aboutDescription = "Ayewam is your guide to authentic Ghanaian cuisine, offering traditional recipes with step-by-step instructions. Explore the rich culinary heritage of Ghana through our carefully curated collection of dishes."
-        static let aboutDescription2 = "Whether you're looking to prepare Jollof Rice, Light Soup, or other Ghanaian classics, Ayewam provides you with the knowledge and guidance to create authentic dishes at home."
-        static let cuisineHeading = "Ghanaian Cuisine"
-        static let cuisineDescription = "Ghanaian cuisine is known for its flavorful stews, soups, and one-pot dishes. Key ingredients include plantains, cassava, yams, corn, beans, and various proteins. Dishes are often seasoned with aromatic spices and herbs."
-        static let versionLabel = "Version 1.0"
-        static let copyrightNotice = "© 2025 Justyn Adusei-Prempeh"
+        static let appTagline = localized("appTagline", comment: "App tagline")
+        static let aboutHeading = localized("aboutHeading", comment: "Heading for about section")
+        static let aboutDescription = localized("aboutDescription", comment: "Description of the app")
+        static let aboutDescription2 = localized("aboutDescription2", comment: "Additional description of the app")
+        static let cuisineHeading = localized("cuisineHeading", comment: "Heading for Ghanaian cuisine section")
+        static let cuisineDescription = localized("cuisineDescription", comment: "Description of Ghanaian cuisine")
+        static let versionLabel = localized("versionLabel", comment: "Label for app version")
+        static let copyrightNotice = localized("copyrightNotice", comment: "Copyright notice")
         
         // Error messages
-        static let genericErrorTitle = "Oops!"
-        static let retryButtonLabel = "Try Again"
-        static let failedToLoadRecipes = "We couldn't load your recipes. Please check your connection and try again."
+        static let genericErrorTitle = localized("genericErrorTitle", comment: "Generic error title")
+        static let retryButtonLabel = localized("retryButtonLabel", comment: "Label for retry button")
+        static let failedToLoadRecipes = localized("failedToLoadRecipes", comment: "Message when recipes fail to load")
     }
     
-    /// Asset names and resource identifiers
+    /// Enhanced localization helpers
+    enum Localization {
+        /// Returns appropriate plural form based on count
+        static func pluralized(singular: String, plural: String, count: Int) -> String {
+            return count == 1 ?
+                NSLocalizedString(singular, comment: "Singular form") :
+                NSLocalizedString(plural, comment: "Plural form")
+        }
+        
+        /// Returns localized "serving" or "servings" based on count
+        static func servings(count: Int) -> String {
+            return pluralized(
+                singular: "servingsSingular",
+                plural: "servingsPlural",
+                count: count
+            )
+        }
+        
+        /// Formats duration in seconds to minutes with localized unit
+        static func formatDuration(seconds: Int32) -> String {
+            let minutes = seconds / 60
+            return "\(minutes) \(Text.recipeMinutesAbbreviation)"
+        }
+    }
+    
+    /// Asset names and resource identifiers (no changes needed here)
     enum Assets {
         // Icon names
         static let recipeTabIcon = "book"
@@ -140,7 +172,7 @@ enum Constants {
         static let defaultCategoryColor = "#767676"
     }
     
-    /// CoreData related constants
+    /// CoreData related constants (no changes needed here)
     enum Database {
         // Entity names
         static let recipeEntity = "Recipe"
@@ -155,18 +187,12 @@ enum Constants {
         static let stepSortDescriptor = NSSortDescriptor(keyPath: \Step.orderIndex, ascending: true)
     }
     
-    /// Timing and animation-related constants
+    /// Timing and animation-related constants (no changes needed here)
     enum Timing {
         // Debounce durations
         static let searchDebounce: Double = 0.3
         
         // Loading simulation delays (for development)
         static let simulatedNetworkDelay: Double = 0.3
-        
-        // Duration-related formatting
-        static func formatDuration(seconds: Int32) -> String {
-            let minutes = seconds / 60
-            return "\(minutes) \(Text.recipeMinutesAbbreviation)"
-        }
     }
 }
