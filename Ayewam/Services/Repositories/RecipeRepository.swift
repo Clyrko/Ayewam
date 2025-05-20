@@ -19,8 +19,6 @@ class RecipeRepository {
     
     /// Fetches all recipes, optionally filtered by category
     func fetchRecipes(category: Category? = nil, searchText: String? = nil) -> [Recipe] {
-        let request: NSFetchRequest<Recipe> = Recipe.fetchRequest()
-        
         var predicates: [NSPredicate] = []
         
         if let category = category {
@@ -31,18 +29,19 @@ class RecipeRepository {
             predicates.append(NSPredicate(format: "name CONTAINS[cd] %@ OR recipeDescription CONTAINS[cd] %@", searchText, searchText))
         }
         
-        if !predicates.isEmpty {
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        }
+        let predicate = predicates.isEmpty ? nil : NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        let sortDescriptors = [NSSortDescriptor(keyPath: \Recipe.name, ascending: true)]
         
-        // Sorting by name
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \Recipe.name, ascending: true)]
+        let request = CoreDataOptimizer.optimizedFetchRequest(
+            for: Recipe.self,
+            predicate: predicate,
+            sortDescriptors: sortDescriptors
+        )
         
         do {
             return try context.fetch(request)
         } catch {
-            //TODO: justynx uncomment this
-//            ErrorHandler.shared.logError(error, identifier: "RecipeRepository.fetchRecipes")
+            ErrorHandler.shared.logError(error, identifier: "RecipeRepository.fetchRecipes")
             return []
         }
     }
@@ -64,14 +63,19 @@ class RecipeRepository {
     
     /// Fetches favorite recipes
     func fetchFavoriteRecipes() -> [Recipe] {
-        let request: NSFetchRequest<Recipe> = Recipe.fetchRequest()
-        request.predicate = NSPredicate(format: "isFavorite == YES")
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \Recipe.name, ascending: true)]
+        let predicate = NSPredicate(format: "isFavorite == YES")
+        let sortDescriptors = [NSSortDescriptor(keyPath: \Recipe.name, ascending: true)]
+        
+        let request = CoreDataOptimizer.optimizedFetchRequest(
+            for: Recipe.self,
+            predicate: predicate,
+            sortDescriptors: sortDescriptors
+        )
         
         do {
             return try context.fetch(request)
         } catch {
-            print("Error fetching favorite recipes: \(error)")
+            ErrorHandler.shared.logError(error, identifier: "RecipeRepository.fetchFavoriteRecipes")
             return []
         }
     }
@@ -79,14 +83,29 @@ class RecipeRepository {
     // MARK: - Update Operations
     /// Toggles the favorite status of a recipe
     func toggleFavorite(_ recipe: Recipe) throws {
-        recipe.isFavorite.toggle()
-        
-        do {
-            try context.save()
-        } catch {
-            ErrorHandler.shared.logError(error, identifier: "RecipeRepository.toggleFavorite")
-            throw AyewamError.failedToSaveData
+        // If we're toggling a single recipe, use the regular approach
+        if context.registeredObjects.contains(recipe) {
+            recipe.isFavorite.toggle()
+            try CoreDataOptimizer.saveContext(context)
+            return
         }
+        
+        // For bulk operations, use batch update
+        guard let id = recipe.id else {
+            throw AyewamError.invalidData
+        }
+        
+        // Get current status
+        let currentValue = recipe.isFavorite
+        
+        // Perform batch update
+        let predicate = NSPredicate(format: "id == %@", id)
+        let _ = try CoreDataOptimizer.batchUpdate(
+            in: context,
+            entityName: "Recipe",
+            propertiesToUpdate: ["isFavorite": !currentValue],
+            predicate: predicate
+        )
     }
     
     func fetchRecipeResult(withID id: String) -> Result<Recipe, Error> {

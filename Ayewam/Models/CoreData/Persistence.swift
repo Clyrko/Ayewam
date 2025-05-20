@@ -48,12 +48,61 @@ struct PersistenceController {
             }
         })
         
-        container.viewContext.automaticallyMergesChangesFromParent = true
-        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        setupContexts()
         
         if !inMemory {
             let recipeSeeder = RecipeSeeder(context: container.viewContext)
             recipeSeeder.seedDefaultRecipesIfNeeded()
+        }
+    }
+    
+    // MARK: - Setup Methods
+    
+    private func setupContexts() {
+        // Main context optimization
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        
+        // Performance optimizations
+        container.viewContext.shouldDeleteInaccessibleFaults = true
+        container.viewContext.name = "ViewContext"
+        
+        // Set fetch batch size
+        container.viewContext.stalenessInterval = 0.0 // Always refetch
+    }
+    
+    // MARK: - Context Creation
+    
+    /// Creates a new background context for performing operations
+    func newBackgroundContext() -> NSManagedObjectContext {
+        let context = container.newBackgroundContext()
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        context.shouldDeleteInaccessibleFaults = true
+        return context
+    }
+    
+    /// Performs work in a background context and returns the result
+    func performBackgroundTask<T>(_ block: @escaping (NSManagedObjectContext) throws -> T) async throws -> T {
+        return try await withCheckedThrowingContinuation { continuation in
+            let context = newBackgroundContext()
+            context.perform {
+                do {
+                    let result = try block(context)
+                    
+                    if context.hasChanges {
+                        do {
+                            try context.save()
+                        } catch {
+                            continuation.resume(throwing: error)
+                            return
+                        }
+                    }
+                    
+                    continuation.resume(returning: result)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
         }
     }
 }

@@ -26,6 +26,12 @@ class RecipeViewModel: ObservableObject {
     @Published var availableDifficulties: [String] = []
     @Published var availableRegions: [String] = []
     
+    // Pagination properties
+    @Published var currentPage: Int = 0
+    @Published var hasMorePages: Bool = true
+    @Published var pageSize: Int = 20
+    @Published var isLoadingMore: Bool = false
+    
     private var cancellables = Set<AnyCancellable>()
     
     init(repository: RecipeRepository, manager: RecipeManager) {
@@ -59,11 +65,21 @@ class RecipeViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    func loadRecipes(category: Category? = nil, searchText: String = "", difficulty: String? = nil, region: String? = nil) {
-        isLoading = true
+    func loadRecipes(category: Category? = nil, searchText: String = "", difficulty: String? = nil, region: String? = nil, resetPage: Bool = true) {
+        if resetPage {
+            currentPage = 0
+            recipes = []
+            hasMorePages = true
+        }
+        
+        if currentPage > 0 && !hasMorePages {
+            return
+        }
+        
+        isLoading = currentPage == 0
+        isLoadingMore = currentPage > 0
         errorMessage = nil
         
-        // Simulate network delay for UI testing
         DispatchQueue.main.asyncAfter(deadline: .now() + Constants.Timing.simulatedNetworkDelay) { [weak self] in
             guard let self = self else { return }
             
@@ -77,6 +93,22 @@ class RecipeViewModel: ObservableObject {
             
             self.recipes = self.manager.fetchRecipes(filtering: filtering)
             self.isLoading = false
+            self.isLoadingMore = false
+            
+            self.hasMorePages = !self.recipes.isEmpty && self.recipes.count >= self.pageSize
+            self.currentPage += 1
+        }
+    }
+    
+    func loadMoreRecipesIfNeeded() {
+        if !isLoading && !isLoadingMore && hasMorePages {
+            loadRecipes(
+                category: selectedCategory,
+                searchText: searchText,
+                difficulty: selectedDifficulty,
+                region: selectedRegion,
+                resetPage: false
+            )
         }
     }
     
