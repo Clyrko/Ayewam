@@ -188,17 +188,22 @@ struct CategoryChip: View {
 
 struct RecipeListView_Previews: PreviewProvider {
     static var previews: some View {
+        let context = PersistenceController.preview.container.viewContext
+        
+        let manager = RecipeManager(context: context)
+        
+        let recipeRepository = RecipeRepository(context: context)
+        let categoryRepository = CategoryRepository(context: context)
+        
         NavigationView {
             RecipeListView(
                 viewModel: RecipeViewModel(
-                    repository: RecipeRepository(
-                        context: PersistenceController.preview.container.viewContext
-                    )
+                    repository: recipeRepository,
+                    manager: manager
                 ),
                 categoryViewModel: CategoryViewModel(
-                    repository: CategoryRepository(
-                        context: PersistenceController.preview.container.viewContext
-                    )
+                    repository: categoryRepository,
+                    manager: manager
                 )
             )
         }

@@ -7,16 +7,29 @@
 
 import Foundation
 import CoreData
+import Combine
 
 class FavoriteViewModel: ObservableObject {
     private let repository: RecipeRepository
+    private let manager: RecipeManager
     
     @Published var favoriteRecipes: [Recipe] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
-    init(repository: RecipeRepository) {
+    private var cancellables = Set<AnyCancellable>()
+    
+    init(repository: RecipeRepository, manager: RecipeManager) {
         self.repository = repository
+        self.manager = manager
+        
+        // Listen for favorite changes
+        manager.favoriteChangedPublisher
+            .sink { [weak self] _ in
+                self?.loadFavorites()
+            }
+            .store(in: &cancellables)
+        
         loadFavorites()
     }
     
@@ -24,18 +37,17 @@ class FavoriteViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        //TODO: jutynx Simulate network delay for UI testing (remove in production)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.Timing.simulatedNetworkDelay) { [weak self] in
             guard let self = self else { return }
             
-            self.favoriteRecipes = self.repository.fetchFavoriteRecipes()
+            self.favoriteRecipes = self.manager.fetchFavoriteRecipes()
             self.isLoading = false
         }
     }
     
     func toggleFavorite(_ recipe: Recipe) {
         do {
-            try repository.toggleFavorite(recipe)
+            try manager.toggleFavorite(recipe)
             loadFavorites()
         } catch {
             errorMessage = "Failed to update favorite status: \(error.localizedDescription)"

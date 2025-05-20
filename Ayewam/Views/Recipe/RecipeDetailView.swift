@@ -152,7 +152,7 @@ struct RecipeDetailView: View {
     private var overviewTab: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let description = recipe.recipeDescription, !description.isEmpty {
-                Text("About this dish")
+                Text(Constants.Text.aboutThisDish)
                     .font(.headline)
                 
                 Text(description)
@@ -161,13 +161,12 @@ struct RecipeDetailView: View {
             
             Divider()
             
-            // Category info
-            if let category = recipe.category, let name = category.name {
+            if let category = recipe.categoryObject {
                 HStack {
-                    Text("Category:")
+                    Text(Constants.Text.categoryLabel)
                         .fontWeight(.medium)
                     
-                    Text(name)
+                    Text(category.name ?? "")
                     
                     if let colorHex = category.colorHex {
                         Circle()
@@ -179,17 +178,17 @@ struct RecipeDetailView: View {
             }
             
             // Preparation Info
-            Text("Preparation")
+            Text(Constants.Text.preparation)
                 .font(.headline)
                 .padding(.top, 8)
             
             HStack(spacing: 16) {
                 // Prep time
                 VStack {
-                    Text("\(recipe.prepTime) min")
+                    Text("\(recipe.prepTime) \(Constants.Text.recipeMinutesAbbreviation)")
                         .font(.title3)
                         .fontWeight(.medium)
-                    Text("Prep Time")
+                    Text(Constants.Text.prepTime)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -202,10 +201,10 @@ struct RecipeDetailView: View {
                 
                 // Cook time
                 VStack {
-                    Text("\(recipe.cookTime) min")
+                    Text("\(recipe.cookTime) \(Constants.Text.recipeMinutesAbbreviation)")
                         .font(.title3)
                         .fontWeight(.medium)
-                    Text("Cook Time")
+                    Text(Constants.Text.cookTime)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

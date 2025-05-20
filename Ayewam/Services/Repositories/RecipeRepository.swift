@@ -24,7 +24,7 @@ class RecipeRepository {
         var predicates: [NSPredicate] = []
         
         if let category = category {
-            predicates.append(NSPredicate(format: "category == %@", category))
+            predicates.append(NSPredicate(format: "category == %@ OR category CONTAINS %@", category, category))
         }
         
         if let searchText = searchText, !searchText.isEmpty {
@@ -41,7 +41,8 @@ class RecipeRepository {
         do {
             return try context.fetch(request)
         } catch {
-            print("Error fetching recipes: \(error)")
+            //TODO: justynx uncomment this
+//            ErrorHandler.shared.logError(error, identifier: "RecipeRepository.fetchRecipes")
             return []
         }
     }
@@ -79,6 +80,30 @@ class RecipeRepository {
     /// Toggles the favorite status of a recipe
     func toggleFavorite(_ recipe: Recipe) throws {
         recipe.isFavorite.toggle()
-        try context.save()
+        
+        do {
+            try context.save()
+        } catch {
+            ErrorHandler.shared.logError(error, identifier: "RecipeRepository.toggleFavorite")
+            throw AyewamError.failedToSaveData
+        }
+    }
+    
+    func fetchRecipeResult(withID id: String) -> Result<Recipe, Error> {
+        let request: NSFetchRequest<Recipe> = Recipe.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id)
+        request.fetchLimit = 1
+        
+        do {
+            let results = try context.fetch(request)
+            if let recipe = results.first {
+                return .success(recipe)
+            } else {
+                return .failure(AyewamError.recipeNotFound)
+            }
+        } catch {
+            ErrorHandler.shared.logError(error, identifier: "RecipeRepository.fetchRecipeResult")
+            return .failure(AyewamError.operationFailed(reason: "Failed to fetch recipe"))
+        }
     }
 }

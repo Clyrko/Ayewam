@@ -128,8 +128,12 @@ struct HomeRecipeView: View {
     // Filter recipes based on selected category and search text
     private var filteredRecipes: [Recipe] {
         recipes.filter { recipe in
-            // Category filter
-            let categoryMatch = selectedCategory == nil || recipe.category == selectedCategory
+            let categoryMatch: Bool
+            if let selectedCategory = selectedCategory {
+                categoryMatch = recipe.categoryArray.contains(selectedCategory)
+            } else {
+                categoryMatch = true
+            }
             
             // Search text filter
             let searchMatch: Bool

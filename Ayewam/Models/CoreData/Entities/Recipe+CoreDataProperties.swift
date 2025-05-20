@@ -9,9 +9,7 @@
 import Foundation
 import CoreData
 
-
 extension Recipe {
-
     @nonobjc public class func fetchRequest() -> NSFetchRequest<Recipe> {
         return NSFetchRequest<Recipe>(entityName: "Recipe")
     }
@@ -28,13 +26,39 @@ extension Recipe {
     @NSManaged public var imageName: String?
     @NSManaged public var ingredients: NSSet?
     @NSManaged public var steps: NSSet?
-    @NSManaged public var category: Category?
-
+    @NSManaged public var category: Any?
+    
+    var categoryObject: Category? {
+        if let category = category as? Category {
+            return category
+        } else if let categorySet = category as? NSSet, categorySet.count > 0 {
+            return categorySet.anyObject() as? Category
+        }
+        return nil
+    }
+    
+    var categoryArray: [Category] {
+        if let category = category as? Category {
+            // Handle to-one relationship
+            return [category]
+        } else if let categorySet = category as? NSSet {
+            // Handle to-many relationship
+            return (categorySet.allObjects as? [Category]) ?? []
+        }
+        return []
+    }
+    
+    var categoryName: String {
+        return categoryObject?.name ?? "Uncategorized"
+    }
+    
+    var categoryColorHex: String {
+        return categoryObject?.colorHex ?? Constants.Assets.defaultCategoryColor
+    }
 }
 
 // MARK: Generated accessors for ingredients
 extension Recipe {
-
     @objc(addIngredientsObject:)
     @NSManaged public func addToIngredients(_ value: Ingredient)
 
@@ -46,12 +70,10 @@ extension Recipe {
 
     @objc(removeIngredients:)
     @NSManaged public func removeFromIngredients(_ values: NSSet)
-
 }
 
 // MARK: Generated accessors for steps
 extension Recipe {
-
     @objc(addStepsObject:)
     @NSManaged public func addToSteps(_ value: Step)
 
@@ -63,12 +85,10 @@ extension Recipe {
 
     @objc(removeSteps:)
     @NSManaged public func removeFromSteps(_ values: NSSet)
-
 }
 
 // MARK: Generated accessors for category
 extension Recipe {
-
     @objc(addCategoryObject:)
     @NSManaged public func addToCategory(_ value: Category)
 
@@ -80,9 +100,7 @@ extension Recipe {
 
     @objc(removeCategory:)
     @NSManaged public func removeFromCategory(_ values: NSSet)
-
 }
 
 extension Recipe : Identifiable {
-
 }

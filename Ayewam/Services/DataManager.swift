@@ -14,9 +14,8 @@ class DataManager {
     private let persistenceController: PersistenceController
     private let context: NSManagedObjectContext
     
-    // Repositories
-    let recipeRepository: RecipeRepository
-    let categoryRepository: CategoryRepository
+    // Manager
+    let recipeManager: RecipeManager
     
     // ViewModels
     let recipeViewModel: RecipeViewModel
@@ -27,21 +26,16 @@ class DataManager {
         persistenceController = PersistenceController.shared
         context = persistenceController.container.viewContext
         
-        // Initialize repositories
-        recipeRepository = RecipeRepository(context: context)
-        categoryRepository = CategoryRepository(context: context)
+        // Initialize manager
+        recipeManager = RecipeManager(context: context)
+        
+        // Initialize repositories (for backward compatibility)
+        let recipeRepository = RecipeRepository(context: context)
+        let categoryRepository = CategoryRepository(context: context)
         
         // Initialize ViewModels
-        recipeViewModel = RecipeViewModel(repository: recipeRepository)
-        categoryViewModel = CategoryViewModel(repository: categoryRepository)
-        favoriteViewModel = FavoriteViewModel(repository: recipeRepository)
-        
-        // Seed data if needed
-        seedDataIfNeeded()
-    }
-    
-    private func seedDataIfNeeded() {
-        let recipeSeeder = RecipeSeeder(context: context)
-        recipeSeeder.seedDefaultRecipesIfNeeded()
+        recipeViewModel = RecipeViewModel(repository: recipeRepository, manager: recipeManager)
+        categoryViewModel = CategoryViewModel(repository: categoryRepository, manager: recipeManager)
+        favoriteViewModel = FavoriteViewModel(repository: recipeRepository, manager: recipeManager)
     }
 }

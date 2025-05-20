@@ -257,22 +257,40 @@ struct MockData {
         return context
     }
     
+    /// Create a mock recipe manager for previews
+    static func mockRecipeManager() -> RecipeManager {
+        let context = previewContext()
+        return RecipeManager(context: context)
+    }
+
     /// Create a mock view model with sample data for previews
     static func mockRecipeViewModel() -> RecipeViewModel {
         let context = previewContext()
-        return RecipeViewModel(repository: RecipeRepository(context: context))
+        let manager = mockRecipeManager()
+        return RecipeViewModel(
+            repository: RecipeRepository(context: context),
+            manager: manager
+        )
     }
-    
+
     /// Create a mock category view model with sample data for previews
     static func mockCategoryViewModel() -> CategoryViewModel {
         let context = previewContext()
-        return CategoryViewModel(repository: CategoryRepository(context: context))
+        let manager = mockRecipeManager()
+        return CategoryViewModel(
+            repository: CategoryRepository(context: context),
+            manager: manager
+        )
     }
-    
+
     /// Create a mock favorite view model with sample data for previews
     static func mockFavoriteViewModel() -> FavoriteViewModel {
         let context = previewContext()
-        return FavoriteViewModel(repository: RecipeRepository(context: context))
+        let manager = mockRecipeManager()
+        return FavoriteViewModel(
+            repository: RecipeRepository(context: context),
+            manager: manager
+        )
     }
 }
 
