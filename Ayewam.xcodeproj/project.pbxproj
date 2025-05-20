@@ -33,8 +33,9 @@
 		695694202DDCC82F00D94B9C /* Exceptions for "Ayewam" folder in "Ayewam" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"/Localized: Resources/Localizable.strings",
 				Info.plist,
-				Resources/Localizable.strings,
+				Resources/Untitled.swift,
 			);
 			target = 695693F62DDCC82D00D94B9C /* Ayewam */;
 		};
@@ -45,7 +46,7 @@
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 695693F32DDCC82D00D94B9C /* Sources */;
 			membershipExceptions = (
-				Resources/Localizable.strings,
+				"/Localized: Resources/Localizable.strings",
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -218,8 +219,6 @@
 				en,
 				Base,
 				ak,
-				"ee-GH",
-				"gaa-GH",
 			);
 			mainGroup = 695693EE2DDCC82D00D94B9C;
 			minimizedProjectReferenceProxies = 1;
@@ -382,6 +381,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -443,6 +443,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";

@@ -1,0 +1,70 @@
+//
+//  Localizable.strings.swift
+//  Ayewam
+//
+//  Created by Justyn Adusei-Prempeh on 5/20/25.
+//
+
+// Tab titles
+"recipesTabTitle" = "Aduane Nhyehyɛe";
+"categoriesTabTitle" = "Nkyekyem";
+"favoritesTabTitle" = "Me Pɛ";
+"aboutTabTitle" = "Fa Ho Nsɛm";
+
+// Navigation titles
+"appTitle" = "Ghana Aduane Nhyehyɛe";
+"categoriesTitle" = "Nkyekyem";
+"favoritesTitle" = "Me Pɛ Aduane";
+"aboutTitle" = "Fa Ayewam Ho";
+
+// Recipe-related
+"recipeMinutesAbbreviation" = "min";
+"servingsSingular" = "nnipa";
+"servingsPlural" = "nnipa";
+"noRecipesFound" = "Yɛanhu aduane nhyehyɛe biara";
+"tryAdjustingFilters" = "Sɔ hwehwɛ mu bio";
+"checkBackLater" = "Sane bra daakye";
+"clearFilters" = "Yi Nhwehwɛmu";
+"searchRecipesPrompt" = "Hwehwɛ aduane";
+
+// Recipe detail view
+"aboutThisDish" = "Fa saa aduane yi ho";
+"preparation" = "Ahoboa";
+"prepTime" = "Ahoboa Mmere";
+"cookTime" = "Ɛnoa Mmere";
+"ingredients" = "Nneɛma a Ɛho Hia";
+"cookingInstructions" = "Sɛnea Wobe Noa";
+"stepPrefix" = "Nhyehyɛe";
+"overview" = "Ɔfaa Ho";
+"steps" = "Nhyehyɛe";
+"categoryLabel" = "Kyefa:";
+"regionLabel" = "Mantam:";
+"noIngredientsAvailable" = "Nneɛma a Ɛho Hia nni hɔ";
+"noStepsAvailable" = "Nhyehyɛe biara nni hɔ";
+
+// Favorites
+"loadingFavorites" = "Ɛreloada Me Pɛ...";
+"noFavoritesYet" = "Wo Nya Npɛ Biara";
+"tapToAddFavorites" = "Fa wo nsa ka akoma no na fa aduane no ahyɛ wo pɛ mu";
+"removeFavorite" = "Yi";
+
+// Categories
+"exploreCategoriesSubtitle" = "Hwɛ Ghana aduane nkyekyem ahorow";
+"loadingCategories" = "Ɛreloada nkyekyem...";
+"noCategoriesFound" = "Yɛanhu Nkyekyem Biara";
+"checkBackForCategories" = "Sane bra daakye";
+
+// About screen
+"appTagline" = "Ghana Aduane Nhyehyɛe Ankasa";
+"aboutHeading" = "Fa Ayewam Ho";
+"aboutDescription" = "Ayewam yɛ wo kyerɛwfo ma Ghana aduane ankasa, ɛma wo nhyehyɛe kwan pa so. Hwɛ Ghana aduane nkaetam pa a yɛaboaboa ano ama wo.";
+"aboutDescription2" = "Sɛ wopɛ sɛ wonoa Jollof, Light Soup, anaa Ghana aduane foforɔ bi, Ayewam bɛkyerɛ wo kwan pa a wobɛfa so de ayɛ aduane ankasa wɔ wo fie.";
+"cuisineHeading" = "Ghana Aduane";
+"cuisineDescription" = "Ghana aduane wɔ nka pa na ɛyɛ anigye. Nneɛma titiriw a yɛde yɛ aduane no ne bɔɔdee, bankye, bayerɛ, aburo, ase, ne nam ahorow.";
+"versionLabel" = "Version 1.0";
+"copyrightNotice" = "© 2025 Justyn Adusei-Prempeh";
+
+// Error messages
+"genericErrorTitle" = "Ao!";
+"retryButtonLabel" = "Sɔ Bio";
+"failedToLoadRecipes" = "Yɛantumi annya wo aduane nhyehyɛe no. Yɛsrɛ wo hwɛ sɛ wo wɔ internet na sɔ bio.";
