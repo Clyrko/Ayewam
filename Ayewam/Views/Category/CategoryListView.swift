@@ -10,20 +10,20 @@ import CoreData
 
 struct CategoryListView: View {
     @ObservedObject private var viewModel = DataManager.shared.categoryViewModel
-    @State private var gridLayout = [GridItem(.adaptive(minimum: 150, maximum: 170), spacing: 16)]
+    @State private var gridLayout = [GridItem(.adaptive(minimum: Constants.UI.gridMinimumWidth, maximum: 170), spacing: Constants.UI.gridItemSpacing)]
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Constants.UI.standardPadding) {
                 // Header
-                Text("Explore Ghanaian cuisine through these traditional categories")
+                Text(Constants.Text.exploreCategoriesSubtitle)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .padding(.horizontal)
                 
                 // Grid of categories
                 if viewModel.isLoading {
-                    LoadingView(message: "Loading categories...")
+                    LoadingView(message: Constants.Text.loadingCategories)
                 } else if let errorMessage = viewModel.errorMessage {
                     ErrorView(errorMessage: errorMessage) {
                         viewModel.loadCategories()
@@ -36,7 +36,7 @@ struct CategoryListView: View {
             }
             .padding(.top)
         }
-        .navigationTitle("Categories")
+        .navigationTitle(Constants.Text.categoriesTitle)
         .onAppear {
             viewModel.loadCategories()
         }
