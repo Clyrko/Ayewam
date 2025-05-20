@@ -21,6 +21,14 @@ struct ContentView: View {
                 Label("Recipes", systemImage: "book")
             }
             
+            // Categories Tab
+            NavigationView {
+                CategoryListView()
+            }
+            .tabItem {
+                Label("Categories", systemImage: "square.grid.2x2")
+            }
+            
             // Favorites Tab
             NavigationView {
                 FavoritesView()
@@ -40,7 +48,6 @@ struct ContentView: View {
     }
 }
 
-// Main Recipe View (formerly ContentView)
 struct HomeRecipeView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @FetchRequest(
@@ -55,6 +62,10 @@ struct HomeRecipeView: View {
     
     @State private var selectedCategory: Category?
     @State private var searchText = ""
+    
+    init(initialCategory: Category? = nil) {
+        self._selectedCategory = State(initialValue: initialCategory)
+    }
     
     var body: some View {
         List {
