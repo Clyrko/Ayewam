@@ -50,21 +50,25 @@ struct RecipeDetailView: View {
     
     // MARK: - Recipe Header
     private var recipeHeaderView: some View {
-        ZStack {
-            if let imageName = recipe.imageName, !imageName.isEmpty {
-                Color.gray.opacity(0.3) // Placeholder until actual image loading is implemented
-            } else {
-                Color.gray.opacity(0.3)
+        if let imageName = recipe.imageName, !imageName.isEmpty {
+            return AsyncImageView.asset(
+                imageName,
+                contentMode: .fill
+            )
+            .frame(height: 250)
+        } else {
+            var placeholderColor = Color.gray.opacity(0.3)
+            
+            if let colorHex = recipe.categoryObject?.colorHex, !colorHex.isEmpty {
+                placeholderColor = Color(hex: colorHex)
             }
             
-            // Placeholder text if no image
-            if recipe.imageName == nil || recipe.imageName?.isEmpty == true {
-                Text(String(recipe.name?.prefix(1) ?? "R"))
-                    .font(.system(size: 60))
-                    .foregroundColor(.white)
-            }
+            return AsyncImageView.placeholder(
+                color: placeholderColor,
+                text: recipe.name
+            )
+            .frame(height: 250)
         }
-        .frame(height: 250)
     }
     
     // MARK: - Recipe Title Panel
@@ -284,7 +288,7 @@ struct RecipeDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             // Step header
             HStack {
-                Text("Step \(step.orderIndex + 1)")
+                Text("\(Constants.Text.stepPrefix) \(step.orderIndex + 1)")
                     .font(.headline)
                     .padding(.vertical, 6)
                     .padding(.horizontal, 12)
@@ -295,7 +299,7 @@ struct RecipeDetailView: View {
                 if step.duration > 0 {
                     Spacer()
                     
-                    Label("\(step.duration / 60) min", systemImage: "clock")
+                    Label("\(step.duration / 60) \(Constants.Text.recipeMinutesAbbreviation)", systemImage: Constants.Assets.clockIcon)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -305,16 +309,14 @@ struct RecipeDetailView: View {
             Text(step.instruction ?? "")
                 .padding(.vertical, 4)
             
-            // Step image placeholder
-            if let _ = step.imageName {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 150)
-                    .overlay(
-                        Image(systemName: "photo")
-                            .font(.largeTitle)
-                            .foregroundColor(.white)
-                    )
+            // Step image
+            if let imageName = step.imageName, !imageName.isEmpty {
+                AsyncImageView.asset(
+                    imageName,
+                    contentMode: .fill,
+                    cornerRadius: 8
+                )
+                .frame(height: 150)
             }
         }
         .padding(16)

@@ -157,14 +157,20 @@ struct RecipeRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             // Recipe image or placeholder
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 60, height: 60)
-                .overlay(
-                    Text(String(recipe.name?.prefix(1) ?? "R"))
-                        .font(.title)
-                        .foregroundColor(.white)
+            if let imageName = recipe.imageName, !imageName.isEmpty {
+                AsyncImageView.asset(
+                    imageName,
+                    cornerRadius: Constants.UI.smallCornerRadius
                 )
+                .frame(width: 60, height: 60)
+            } else {
+                AsyncImageView.placeholder(
+                    color: Color.blue.opacity(0.3),
+                    text: recipe.name,
+                    cornerRadius: Constants.UI.smallCornerRadius
+                )
+                .frame(width: 60, height: 60)
+            }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(recipe.name ?? "Unknown Recipe")
@@ -179,7 +185,7 @@ struct RecipeRowView: View {
                 
                 HStack(spacing: 12) {
                     if recipe.prepTime > 0 || recipe.cookTime > 0 {
-                        Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
+                        Label("\(recipe.prepTime + recipe.cookTime) \(Constants.Text.recipeMinutesAbbreviation)", systemImage: Constants.Assets.clockIcon)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -195,7 +201,7 @@ struct RecipeRowView: View {
             Spacer()
             
             if recipe.isFavorite {
-                Image(systemName: "heart.fill")
+                Image(systemName: Constants.Assets.favoriteFilledIcon)
                     .foregroundColor(.red)
             }
         }

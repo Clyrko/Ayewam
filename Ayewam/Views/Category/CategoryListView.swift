@@ -90,21 +90,21 @@ struct CategoryCard: View {
     var body: some View {
         VStack {
             // Category color and icon
-            ZStack {
-                Rectangle()
-                    .fill(Color(hex: category.colorHex ?? Constants.Assets.defaultCategoryColor))
-                    .aspectRatio(1.5, contentMode: .fit)
-                    .cornerRadius(Constants.UI.standardCornerRadius)
+            if let imageName = category.imageName, !imageName.isEmpty {
+                AsyncImageView.asset(
+                    imageName,
+                    cornerRadius: Constants.UI.standardCornerRadius
+                )
+                .aspectRatio(1.5, contentMode: .fit)
+            } else {
+                let colorHex = category.colorHex ?? Constants.Assets.defaultCategoryColor
                 
-                if let imageName = category.imageName, !imageName.isEmpty {
-                    Image(systemName: Constants.Assets.defaultFoodIcon)
-                        .font(.system(size: Constants.UI.extraLargeIconSize * 2/3))
-                        .foregroundColor(.white.opacity(0.8))
-                } else {
-                    Text(String(category.name?.prefix(1) ?? "C"))
-                        .font(.system(size: Constants.UI.extraLargeIconSize * 2/3, weight: .bold))
-                        .foregroundColor(.white.opacity(0.8))
-                }
+                AsyncImageView.placeholder(
+                    color: Color(hex: colorHex),
+                    text: category.name,
+                    cornerRadius: Constants.UI.standardCornerRadius
+                )
+                .aspectRatio(1.5, contentMode: .fit)
             }
             
             // Category name and recipe count

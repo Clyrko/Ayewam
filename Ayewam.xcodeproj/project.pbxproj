@@ -35,7 +35,6 @@
 			membershipExceptions = (
 				"/Localized: Resources/Localizable.strings",
 				Info.plist,
-				Resources/Untitled.swift,
 			);
 			target = 695693F62DDCC82D00D94B9C /* Ayewam */;
 		};
