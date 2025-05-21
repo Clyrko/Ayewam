@@ -35,8 +35,10 @@ struct CookingView: View {
                         VStack(alignment: .leading, spacing: 20) {
                             // Current step view
                             if let currentStep = viewModel.session.currentStep {
-                                StepDetailView(
+                                StepCardView(
                                     step: currentStep,
+                                    stepNumber: viewModel.session.currentStepIndex + 1,
+                                    totalSteps: viewModel.session.totalSteps,
                                     isActive: true,
                                     isCompleted: viewModel.session.isStepCompleted(Int(currentStep.orderIndex)),
                                     timerState: viewModel.activeTimers[Int(currentStep.orderIndex)],
@@ -45,6 +47,12 @@ struct CookingView: View {
                                     },
                                     onTimerCancel: {
                                         viewModel.cancelTimer(for: Int(currentStep.orderIndex))
+                                    },
+                                    onMarkComplete: {
+                                        withAnimation {
+                                            viewModel.nextStep()
+                                        }
+                                        hapticImpact.impactOccurred(intensity: 0.8)
                                     }
                                 )
                                 .transition(.opacity)
@@ -53,8 +61,14 @@ struct CookingView: View {
                             
                             // Ingredients overlay (conditionally shown)
                             if viewModel.showIngredients {
-                                ingredientsPanel
-                                    .transition(.move(edge: .bottom))
+                                // Replace with IngredientPanelView
+                                IngredientPanelView(
+                                    ingredients: sortedIngredients(from: viewModel.session.recipe.ingredients as? Set<Ingredient> ?? []),
+                                    onClose: {
+                                        viewModel.toggleIngredients()
+                                    }
+                                )
+                                .transition(.move(edge: .bottom))
                             }
                         }
                         .padding()
@@ -221,58 +235,7 @@ struct CookingView: View {
         }
     }
     
-    private var ingredientsPanel: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Ingredients")
-                    .font(.headline)
-                
-                Spacer()
-                
-                Button(action: { viewModel.toggleIngredients() }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            if let ingredients = viewModel.session.recipe.ingredients as? Set<Ingredient>, !ingredients.isEmpty {
-                ForEach(sortedIngredients(from: ingredients), id: \.self) { ingredient in
-                    HStack(alignment: .top, spacing: 12) {
-                        Circle()
-                            .fill(Color.blue)
-                            .frame(width: 8, height: 8)
-                            .padding(.top, 6)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(formatIngredientQuantity(ingredient))
-                                    .fontWeight(.medium)
-                                
-                                Text(ingredient.name ?? "")
-                            }
-                            
-                            if let notes = ingredient.notes, !notes.isEmpty {
-                                Text(notes)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-            } else {
-                Text("No ingredients available")
-                    .foregroundColor(.secondary)
-                    .italic()
-            }
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
-        .padding(.top, 16)
-    }
+    // We remove the ingredientsPanel computed property since we're replacing it with IngredientPanelView
     
     private var cookingNavigationControls: some View {
         HStack(spacing: 20) {
