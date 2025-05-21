@@ -140,7 +140,10 @@ class RecipeSeeder {
         recipe.region = region
         recipe.imageName = imageName
         recipe.isFavorite = false
-        recipe.category = category
+        
+        if let category = category {
+            recipe.addToCategory(category)
+        }
         
         return recipe
     }

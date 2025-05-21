@@ -10,12 +10,15 @@ import Combine
 import SwiftUI
 import UserNotifications
 import AVFoundation
+import ActivityKit
 
 class CookingViewModel: ObservableObject {
     @Published var session: CookingSession
     @Published var showFullScreenMode: Bool = false
     @Published var showStepCompletion: Bool = false
     @Published var showIngredients: Bool = false
+    @Published var isLiveActivityEnabled: Bool = false
+    private var activity: Activity<CookingActivityAttributes>?
     
     // Screen wake lock for cooking
     private var idleTimerDisabled = false
@@ -47,10 +50,88 @@ class CookingViewModel: ObservableObject {
         }
     }
     
+    func startLiveActivity() {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            print("Live Activities not enabled")
+            return
+        }
+        
+        let attributes = CookingActivityAttributes(
+            recipeName: session.recipe.name ?? "Recipe",
+            recipeImage: session.recipe.imageName
+        )
+        
+        let initialState = CookingActivityAttributes.ContentState(
+            recipeName: session.recipe.name ?? "Recipe",
+            currentStep: session.currentStepIndex + 1,
+            totalSteps: session.totalSteps,
+            timerEndTime: nil,
+            timerStepName: nil
+        )
+        
+        do {
+            activity = try Activity.request(
+                attributes: attributes,
+                contentState: initialState,
+                pushType: nil
+            )
+            isLiveActivityEnabled = true
+            print("Live Activity started successfully")
+        } catch {
+            print("Error starting Live Activity: \(error.localizedDescription)")
+        }
+    }
+    
+    func updateLiveActivity() {
+        guard let activity = activity else { return }
+        
+        let state = CookingActivityAttributes.ContentState(
+            recipeName: session.recipe.name ?? "Recipe",
+            currentStep: session.currentStepIndex + 1,
+            totalSteps: session.totalSteps,
+            timerEndTime: getActiveTimerEndTime(),
+            timerStepName: session.currentStep?.instruction
+        )
+        
+        Task {
+            await activity.update(using: state)
+        }
+    }
+    
+    func endLiveActivity() {
+        guard let activity = activity else { return }
+        
+        let finalState = CookingActivityAttributes.ContentState(
+            recipeName: session.recipe.name ?? "Recipe",
+            currentStep: session.totalSteps,
+            totalSteps: session.totalSteps,
+            timerEndTime: nil,
+            timerStepName: nil
+        )
+        
+        Task {
+            await activity.end(using: finalState, dismissalPolicy: .immediate)
+            isLiveActivityEnabled = false
+        }
+    }
+    
+    private func getActiveTimerEndTime() -> Date? {
+        guard let currentStep = session.currentStep,
+              let timerState = activeTimers[Int(currentStep.orderIndex)],
+              timerState.isRunning else {
+            return nil
+        }
+        
+        return Date().addingTimeInterval(TimeInterval(timerState.remainingTime))
+    }
+    
     func startCooking() {
         session.start()
         enableScreenWakeLock()
         showFullScreenMode = true
+        if ActivityAuthorizationInfo().areActivitiesEnabled {
+            startLiveActivity()
+        }
     }
     
     func endCooking() {
@@ -58,16 +139,25 @@ class CookingViewModel: ObservableObject {
         disableScreenWakeLock()
         showFullScreenMode = false
         cancelAllTimers()
+        if isLiveActivityEnabled {
+            endLiveActivity()
+        }
     }
     
     func nextStep() {
         if !session.moveToNextStep() {
             showStepCompletion = true
         }
+        if isLiveActivityEnabled {
+            updateLiveActivity()
+        }
     }
     
     func previousStep() {
         _ = session.moveToPreviousStep()
+        if isLiveActivityEnabled {
+            updateLiveActivity()
+        }
     }
     
     func toggleIngredients() {
@@ -103,6 +193,10 @@ class CookingViewModel: ObservableObject {
             }
         
         timerCancellables[stepIndex] = timer
+        
+        if isLiveActivityEnabled {
+            updateLiveActivity()
+        }
     }
     
     private func updateTimer(for stepIndex: Int, at date: Date) {
@@ -123,6 +217,10 @@ class CookingViewModel: ObservableObject {
         cancelTimer(for: stepIndex)
         playTimerCompletionFeedback()
         showTimerCompletionNotification(for: stepIndex)
+        
+        if isLiveActivityEnabled {
+            updateLiveActivity()
+        }
     }
     
     func cancelTimer(for stepIndex: Int) {
