@@ -65,13 +65,12 @@ class CookingSession: ObservableObject {
     }
     
     func moveToNextStep() -> Bool {
+        markCurrentStepComplete()
+        
         guard currentStepIndex < totalSteps - 1 else {
-            // Already at last step
-            markCurrentStepComplete()
             return false
         }
         
-        markCurrentStepComplete()
         currentStepIndex += 1
         return true
     }
@@ -86,8 +85,8 @@ class CookingSession: ObservableObject {
     }
     
     func markCurrentStepComplete() {
-        if let index = currentStep?.orderIndex {
-            completedSteps.insert(Int(index))
+        if let currentStep = currentStep {
+            completedSteps.insert(Int(currentStep.orderIndex))
         }
     }
     

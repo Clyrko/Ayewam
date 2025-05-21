@@ -111,7 +111,10 @@ class CookingViewModel: ObservableObject {
         
         Task {
             await activity.end(using: finalState, dismissalPolicy: .immediate)
-            isLiveActivityEnabled = false
+            
+            await MainActor.run {
+                isLiveActivityEnabled = false
+            }
         }
     }
     
@@ -145,9 +148,13 @@ class CookingViewModel: ObservableObject {
     }
     
     func nextStep() {
-        if !session.moveToNextStep() {
+        let result = session.moveToNextStep()
+        if !result {
             showStepCompletion = true
         }
+        
+        objectWillChange.send()
+        
         if isLiveActivityEnabled {
             updateLiveActivity()
         }
@@ -155,6 +162,9 @@ class CookingViewModel: ObservableObject {
     
     func previousStep() {
         _ = session.moveToPreviousStep()
+        
+        objectWillChange.send()
+        
         if isLiveActivityEnabled {
             updateLiveActivity()
         }
