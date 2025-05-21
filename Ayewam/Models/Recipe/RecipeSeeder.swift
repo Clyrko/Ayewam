@@ -44,6 +44,7 @@ class RecipeSeeder {
         createCategory(name: "Sides", colorHex: "#A1887F", imageName: "category_sides")
     }
     
+    @discardableResult
     private func createCategory(name: String, colorHex: String, imageName: String?) -> Category {
         let category = Category(context: context)
         category.name = name
@@ -55,7 +56,7 @@ class RecipeSeeder {
     private func createRecipes() {
         // Get created categories
         let soups = fetchCategory(name: "Soups")
-        let stews = fetchCategory(name: "Stews")
+//        let stews = fetchCategory(name: "Stews")
         let riceDishes = fetchCategory(name: "Rice Dishes")
         //TODO: justynx fetch other categories similarly
         
@@ -148,6 +149,7 @@ class RecipeSeeder {
         return recipe
     }
     
+    @discardableResult
     private func createIngredient(name: String, quantity: Double?, unit: String?, notes: String?, orderIndex: Int16, recipe: Recipe) -> Ingredient {
         let ingredient = Ingredient(context: context)
         ingredient.name = name
@@ -159,6 +161,7 @@ class RecipeSeeder {
         return ingredient
     }
     
+    @discardableResult
     private func createStep(instruction: String, duration: Int32?, imageName: String?, orderIndex: Int16, recipe: Recipe) -> Step {
         let step = Step(context: context)
         step.instruction = instruction

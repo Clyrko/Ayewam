@@ -61,18 +61,21 @@ class CookingViewModel: ObservableObject {
             recipeImage: session.recipe.imageName
         )
         
-        let initialState = CookingActivityAttributes.ContentState(
-            recipeName: session.recipe.name ?? "Recipe",
-            currentStep: session.currentStepIndex + 1,
-            totalSteps: session.totalSteps,
-            timerEndTime: nil,
-            timerStepName: nil
+        let initialContent = ActivityContent(
+            state: CookingActivityAttributes.ContentState(
+                recipeName: session.recipe.name ?? "Recipe",
+                currentStep: session.currentStepIndex + 1,
+                totalSteps: session.totalSteps,
+                timerEndTime: nil,
+                timerStepName: nil
+            ),
+            staleDate: nil
         )
         
         do {
             activity = try Activity.request(
                 attributes: attributes,
-                contentState: initialState,
+                content: initialContent,
                 pushType: nil
             )
             isLiveActivityEnabled = true
@@ -85,7 +88,7 @@ class CookingViewModel: ObservableObject {
     func updateLiveActivity() {
         guard let activity = activity else { return }
         
-        let state = CookingActivityAttributes.ContentState(
+        let updatedState = CookingActivityAttributes.ContentState(
             recipeName: session.recipe.name ?? "Recipe",
             currentStep: session.currentStepIndex + 1,
             totalSteps: session.totalSteps,
@@ -93,8 +96,13 @@ class CookingViewModel: ObservableObject {
             timerStepName: session.currentStep?.instruction
         )
         
+        let updatedContent = ActivityContent(
+            state: updatedState,
+            staleDate: nil
+        )
+        
         Task {
-            await activity.update(using: state)
+            await activity.update(updatedContent)
         }
     }
     
@@ -109,9 +117,15 @@ class CookingViewModel: ObservableObject {
             timerStepName: nil
         )
         
+        let finalContent = ActivityContent(
+            state: finalState,
+            staleDate: nil
+        )
+        
         Task {
-            await activity.end(using: finalState, dismissalPolicy: .immediate)
+            await activity.end(finalContent, dismissalPolicy: .immediate)
             
+            // Update UI properties on the main thread
             await MainActor.run {
                 isLiveActivityEnabled = false
             }

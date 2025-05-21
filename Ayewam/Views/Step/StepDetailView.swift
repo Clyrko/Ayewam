@@ -159,13 +159,12 @@ struct StepDetailView: View {
     }
 }
 
-#Preview {
-    // Create a mock step for preview
+#Preview(traits: .sizeThatFitsLayout) {
     let context = PersistenceController.preview.container.viewContext
     let step = Step(context: context)
     step.instruction = "Chop the onions into small pieces and set aside."
     step.orderIndex = 0
-    step.duration = 180 // 3 minutes
+    step.duration = 180
     
     return StepDetailView(
         step: step,
@@ -175,6 +174,5 @@ struct StepDetailView: View {
         onTimerStart: {},
         onTimerCancel: {}
     )
-    .previewLayout(.sizeThatFits)
     .padding()
 }

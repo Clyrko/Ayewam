@@ -10,6 +10,7 @@ import CoreData
 import SwiftUI
 
 /// Provides mock data for previews and testing
+@MainActor
 struct MockData {
     /// Create and return a preview recipe with all relationships
     static func previewRecipe(in context: NSManagedObjectContext) -> Recipe {
@@ -262,7 +263,7 @@ struct MockData {
         let context = previewContext()
         return RecipeManager(context: context)
     }
-
+    
     /// Create a mock view model with sample data for previews
     static func mockRecipeViewModel() -> RecipeViewModel {
         let context = previewContext()
@@ -272,7 +273,7 @@ struct MockData {
             manager: manager
         )
     }
-
+    
     /// Create a mock category view model with sample data for previews
     static func mockCategoryViewModel() -> CategoryViewModel {
         let context = previewContext()
@@ -282,7 +283,7 @@ struct MockData {
             manager: manager
         )
     }
-
+    
     /// Create a mock favorite view model with sample data for previews
     static func mockFavoriteViewModel() -> FavoriteViewModel {
         let context = previewContext()
