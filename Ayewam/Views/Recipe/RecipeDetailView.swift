@@ -12,6 +12,7 @@ struct RecipeDetailView: View {
     let recipe: Recipe
     @ObservedObject var viewModel: RecipeViewModel
     @State private var activeTab = 0
+    @State private var showCookingMode = false
     
     var body: some View {
         ScrollView {
@@ -44,6 +45,11 @@ struct RecipeDetailView: View {
                     Image(systemName: recipe.isFavorite ? "heart.fill" : "heart")
                         .foregroundColor(recipe.isFavorite ? .red : .gray)
                 }
+            }
+        }
+        .fullScreenCover(isPresented: $showCookingMode) {
+            NavigationView {
+                CookingView(viewModel: CookingViewModel(recipe: recipe))
             }
         }
     }
@@ -219,6 +225,26 @@ struct RecipeDetailView: View {
                         .fill(Color(.systemGray6))
                 )
             }
+            
+            // ADD THE START COOKING BUTTON HERE
+            Button(action: {
+                showCookingMode = true
+            }) {
+                HStack {
+                    Image(systemName: "play.fill")
+                    Text("Start Cooking")
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.blue)
+                        .shadow(color: Color.blue.opacity(0.3), radius: 4, x: 0, y: 2)
+                )
+            }
+            .padding(.top, 20)
         }
     }
     
