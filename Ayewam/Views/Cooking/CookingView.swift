@@ -12,6 +12,7 @@ struct CookingView: View {
     @ObservedObject var viewModel: CookingViewModel
     @Environment(\.presentationMode) var presentationMode
     @State private var showExitConfirmation = false
+    @State private var showActiveTimers = false
     
     // Haptic stuff
     private let hapticImpact = UIImpactFeedbackGenerator(style: .medium)
@@ -74,9 +75,25 @@ struct CookingView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { viewModel.toggleIngredients() }) {
-                        Image(systemName: "list.bullet")
-                            .foregroundColor(.primary)
+                    HStack {
+                        Button(action: { viewModel.toggleIngredients() }) {
+                            Image(systemName: "list.bullet")
+                                .foregroundColor(.primary)
+                        }
+                        
+                        Button(action: { showActiveTimers.toggle() }) {
+                            Image(systemName: "timer")
+                                .foregroundColor(.primary)
+                                .overlay(
+                                    viewModel.activeTimers.isEmpty ? nil :
+                                        Text("\(viewModel.activeTimers.count)")
+                                            .font(.system(size: 12))
+                                            .padding(4)
+                                            .background(Circle().fill(Color.red))
+                                            .foregroundColor(.white)
+                                            .offset(x: 10, y: -10)
+                                )
+                        }
                     }
                 }
             }
@@ -106,6 +123,30 @@ struct CookingView: View {
             }
             .onDisappear {
                 viewModel.endCooking()
+            }
+            
+            .sheet(isPresented: $showActiveTimers) {
+                NavigationView {
+                    ScrollView {
+                        ActiveTimersView(
+                            timers: viewModel.getActiveTimersList(),
+                            steps: viewModel.session.sortedSteps,
+                            onCancel: { stepIndex in
+                                viewModel.cancelTimer(for: stepIndex)
+                            }
+                        )
+                        .padding()
+                    }
+                    .navigationTitle("Active Timers")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Done") {
+                                showActiveTimers = false
+                            }
+                        }
+                    }
+                }
             }
         }
     }

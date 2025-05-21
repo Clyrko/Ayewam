@@ -222,7 +222,7 @@ class CookingViewModel: ObservableObject {
             updateLiveActivity()
         }
     }
-    
+
     func cancelTimer(for stepIndex: Int) {
         activeTimers.removeValue(forKey: stepIndex)
         timerCancellables.removeValue(forKey: stepIndex)?.cancel()
@@ -235,7 +235,7 @@ class CookingViewModel: ObservableObject {
         activeTimers.removeAll()
         timerCancellables.removeAll()
     }
-    
+
     private func playTimerCompletionFeedback() {
         // Play sound
         AudioServicesPlaySystemSound(1007)
@@ -269,6 +269,11 @@ class CookingViewModel: ObservableObject {
                 print("Error scheduling notification: \(error)")
             }
         }
+    }
+    
+    func getActiveTimersList() -> [(stepIndex: Int, state: TimerState)] {
+        return activeTimers.map { (stepIndex: $0.key, state: $0.value) }
+            .sorted { $0.stepIndex < $1.stepIndex }
     }
     
     // MARK: - Screen Wake Lock
