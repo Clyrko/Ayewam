@@ -9,41 +9,57 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-    
+    @State private var selectedTab = 0
+
     var body: some View {
-        TabView {
-            // Recipes Tab
-            NavigationView {
-                HomeRecipeView()
+        ZStack(alignment: .bottom) {
+            TabView(selection: $selectedTab) {
+                NavigationView { HomeRecipeView() }
+                    .tag(0)
+
+                NavigationView { CategoryListView() }
+                    .tag(1)
+
+                NavigationView { FavoritesView() }
+                    .tag(2)
+
+                NavigationView { AboutView() }
+                    .tag(3)
             }
-            .tabItem {
-                Label("Recipes", systemImage: "book")
+
+            HStack {
+                ForEach(0..<4) { index in
+                    Button(action: {
+                        selectedTab = index
+                    }) {
+                        Image(systemName: tabIcon(for: index))
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(selectedTab == index ? .white : .gray)
+                            .frame(width: 44, height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(selectedTab == index ? Color.accentColor : Color.clear)
+                            )
+                    }
+                    .frame(maxWidth: .infinity)
+                }
             }
-            
-            // Categories Tab
-            NavigationView {
-                CategoryListView()
-            }
-            .tabItem {
-                Label("Categories", systemImage: "square.grid.2x2")
-            }
-            
-            // Favorites Tab
-            NavigationView {
-                FavoritesView()
-            }
-            .tabItem {
-                Label("Favorites", systemImage: "heart")
-            }
-            
-            // About Tab
-            NavigationView {
-                AboutView()
-            }
-            .tabItem {
-                Label("About", systemImage: "info.circle")
-            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
+            .background(.ultraThinMaterial)
+            .cornerRadius(20)
+            .padding(.horizontal)
+        }
+        .ignoresSafeArea(.keyboard)
+    }
+
+    func tabIcon(for index: Int) -> String {
+        switch index {
+        case 0: return "book"
+        case 1: return "square.grid.2x2"
+        case 2: return "heart"
+        case 3: return "info.circle"
+        default: return "questionmark"
         }
     }
 }
@@ -68,61 +84,55 @@ struct HomeRecipeView: View {
     }
     
     var body: some View {
-        List {
-            // Categories section
-            Section(header: Text("Categories")) {
-                ForEach(categories, id: \.self) { category in
-                    Button(action: {
-                        selectedCategory = (selectedCategory == category) ? nil : category
-                    }) {
-                        HStack {
-                            Circle()
-                                .fill(Color(hex: category.colorHex ?? "#000000"))
-                                .frame(width: 12, height: 12)
-                            
-                            Text(category.name ?? "Unknown")
-                            
-                            Spacer()
-                            
-                            if selectedCategory == category {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // Title
+                Text("Ayewam")
+                    .font(.largeTitle.bold())
+                    .padding(.horizontal)
+
+                // Search Field
+                TextField("Search recipes", text: $searchText)
+                    .padding(10)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+
+                // Categories (optional horizontal scroll)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(categories, id: \.self) { category in
+                            Button(action: {
+                                selectedCategory = (selectedCategory == category) ? nil : category
+                            }) {
+                                Text(category.name ?? "")
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(selectedCategory == category ? Color.accentColor : Color(.systemGray5))
+                                    .foregroundColor(selectedCategory == category ? .white : .primary)
+                                    .cornerRadius(8)
                             }
                         }
                     }
+                    .padding(.horizontal)
                 }
-                
-                if selectedCategory != nil {
-                    Button("Clear Filter") {
-                        selectedCategory = nil
-                    }
-                    .foregroundColor(.blue)
-                }
-            }
-            
-            // Recipes section
-            Section(header: Text("Recipes")) {
-                if filteredRecipes.isEmpty {
-                    Text("No recipes found")
-                        .foregroundColor(.secondary)
-                        .italic()
-                } else {
+
+                // Recipe Cards
+                LazyVStack(spacing: 16) {
                     ForEach(filteredRecipes, id: \.self) { recipe in
                         NavigationLink {
-                            RecipeDetailView(
-                                recipe: recipe,
-                                viewModel: DataManager.shared.recipeViewModel
-                            )
+                            RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
                         } label: {
-                            RecipeRowView(recipe: recipe)
+                            RecipeCardView(recipe: recipe)
                         }
+                        .buttonStyle(.plain)
                     }
                 }
+                .padding(.horizontal)
             }
+            .padding(.top)
         }
-        .listStyle(InsetGroupedListStyle())
-        .navigationTitle("Ghanaian Recipes")
-        .searchable(text: $searchText, prompt: "Search recipes")
+        .navigationBarHidden(true)
     }
     
     // Filter recipes based on selected category and search text
@@ -361,5 +371,55 @@ struct AboutView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    }
+}
+
+struct RecipeCardView: View {
+    let recipe: Recipe
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let imageName = recipe.imageName, !imageName.isEmpty {
+                AsyncImageView.asset(imageName, cornerRadius: 12)
+                    .frame(height: 180)
+                    .clipped()
+            } else {
+                AsyncImageView.placeholder(
+                    color: Color.blue.opacity(0.3),
+                    text: recipe.name,
+                    cornerRadius: 12
+                )
+                .frame(height: 180)
+            }
+
+            Text(recipe.name ?? "Unknown")
+                .font(.headline)
+
+            if let desc = recipe.recipeDescription, !desc.isEmpty {
+                Text(desc)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+
+            HStack {
+                if recipe.prepTime > 0 || recipe.cookTime > 0 {
+                    Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: Constants.Assets.clockIcon)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                if recipe.isFavorite {
+                    Image(systemName: Constants.Assets.favoriteFilledIcon)
+                        .foregroundColor(.red)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 }
