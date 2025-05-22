@@ -85,54 +85,248 @@ struct HomeRecipeView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Title
-                Text("Ayewam")
-                    .font(.largeTitle.bold())
-                    .padding(.horizontal)
-
-                // Search Field
-                TextField("Search recipes", text: $searchText)
-                    .padding(10)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-
-                // Categories (optional horizontal scroll)
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(categories, id: \.self) { category in
-                            Button(action: {
-                                selectedCategory = (selectedCategory == category) ? nil : category
-                            }) {
-                                Text(category.name ?? "")
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(selectedCategory == category ? Color.accentColor : Color(.systemGray5))
-                                    .foregroundColor(selectedCategory == category ? .white : .primary)
-                                    .cornerRadius(8)
-                            }
-                        }
+            VStack(alignment: .leading, spacing: 24) {
+                // Time-based greeting section
+                timeBasedGreetingSection
+                
+                // Search and filter section
+                searchAndFilterSection
+                
+                // Curated recipes for time of day
+                curatedRecipesSection
+                
+                // Categories section with icons
+                categoriesSection
+                
+                // All recipes section
+                allRecipesSection
+            }
+            .padding(.top, 8)
+        }
+        .navigationBarHidden(true)
+        .background(Color(.systemBackground))
+    }
+    
+    // MARK: - Time-based Greeting
+    private var timeBasedGreetingSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(timeBasedGreeting)
+                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .foregroundColor(.primary)
+            
+            Text("What would you like to cook today?")
+                .font(.title3)
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+    }
+    
+    // MARK: - Search and Filter Section
+    private var searchAndFilterSection: some View {
+        HStack(spacing: 12) {
+            // Search field
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 16, weight: .medium))
+                
+                TextField("Search recipes...", text: $searchText)
+                    .textFieldStyle(PlainTextFieldStyle())
+                
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 16))
                     }
-                    .padding(.horizontal)
                 }
-
-                // Recipe Cards
-                LazyVStack(spacing: 16) {
-                    ForEach(filteredRecipes, id: \.self) { recipe in
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.systemGray6))
+            )
+            
+            // Filter button (placeholder for now)
+            Button(action: {
+                // TODO: Implement filter functionality
+            }) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.primary)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(.systemGray6))
+                    )
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    // MARK: - Curated Recipes Section
+    private var curatedRecipesSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text(curatedSectionTitle)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Button(action: {
+                    // TODO: Show all curated recipes
+                }) {
+                    Text("See All")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.accentColor)
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(curatedRecipes, id: \.self) { recipe in
                         NavigationLink {
                             RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
                         } label: {
-                            RecipeCardView(recipe: recipe)
+                            CuratedRecipeCard(recipe: recipe)
                         }
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 20)
             }
-            .padding(.top)
         }
-        .navigationBarHidden(true)
+    }
+    
+    // MARK: - Categories Section
+    private var categoriesSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Browse by Category")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Button(action: {
+                    // TODO: Show all categories
+                }) {
+                    Text("See All")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.accentColor)
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(categories, id: \.self) { category in
+                        Button(action: {
+                            selectedCategory = (selectedCategory == category) ? nil : category
+                        }) {
+                            HorizontalCategoryCard(
+                                category: category,
+                                isSelected: selectedCategory == category
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+    
+    // MARK: - All Recipes Section
+    private var allRecipesSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("All Recipes")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+                .padding(.horizontal, 20)
+            
+            LazyVStack(spacing: 16) {
+                ForEach(filteredRecipes, id: \.self) { recipe in
+                    NavigationLink {
+                        RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
+                    } label: {
+                        ModernRecipeCard(recipe: recipe)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 20)
+        }
+    }
+    
+    // MARK: - Computed Properties
+    private var timeBasedGreeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5...11:
+            return "Good Morning"
+        case 12...17:
+            return "Good Afternoon"
+        default:
+            return "Good Evening"
+        }
+    }
+    
+    private var curatedSectionTitle: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5...11:
+            return "Breakfast Favorites"
+        case 12...14:
+            return "Lunch Specials"
+        case 17...21:
+            return "Dinner Classics"
+        default:
+            return "Quick Bites"
+        }
+    }
+    
+    private var curatedRecipes: [Recipe] {
+        let hour = Calendar.current.component(.hour, from: Date())
+        let allRecipes = Array(recipes)
+        
+        switch hour {
+        case 5...11:
+            // Morning - lighter dishes, breakfast items
+            return allRecipes.filter { recipe in
+                let name = recipe.name?.lowercased() ?? ""
+                return name.contains("tea") || name.contains("bread") ||
+                       name.contains("porridge") || name.contains("pancake") ||
+                       recipe.prepTime + recipe.cookTime <= 20
+            }.prefix(5).map { $0 }
+        case 12...14:
+            // Lunch - medium prep time dishes
+            return allRecipes.filter { recipe in
+                let totalTime = recipe.prepTime + recipe.cookTime
+                return totalTime > 20 && totalTime <= 45
+            }.prefix(5).map { $0 }
+        case 17...21:
+            // Dinner - heartier dishes, soups, stews
+            return allRecipes.filter { recipe in
+                let name = recipe.name?.lowercased() ?? ""
+                return name.contains("soup") || name.contains("stew") ||
+                       name.contains("rice") || name.contains("fufu")
+            }.prefix(5).map { $0 }
+        default:
+            // Late night - quick and easy
+            return allRecipes.filter { recipe in
+                recipe.prepTime + recipe.cookTime <= 30
+            }.prefix(5).map { $0 }
+        }
     }
     
     // Filter recipes based on selected category and search text
@@ -156,6 +350,239 @@ struct HomeRecipeView: View {
             }
             
             return categoryMatch && searchMatch
+        }
+    }
+}
+
+// MARK: - Supporting Views
+
+struct CuratedRecipeCard: View {
+    let recipe: Recipe
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Recipe image
+            if let imageName = recipe.imageName, !imageName.isEmpty {
+                AsyncImageView.asset(imageName, cornerRadius: 16)
+                    .frame(width: 180, height: 120)
+                    .clipped()
+            } else {
+                AsyncImageView.placeholder(
+                    color: Color.accentColor.opacity(0.3),
+                    text: recipe.name,
+                    cornerRadius: 16
+                )
+                .frame(width: 180, height: 120)
+            }
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text(recipe.name ?? "Unknown Recipe")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+                    .foregroundColor(.primary)
+                
+                HStack(spacing: 8) {
+                    if recipe.prepTime > 0 || recipe.cookTime > 0 {
+                        Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
+                        Text("• \(difficulty)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding(.top, 12)
+        }
+        .frame(width: 180)
+    }
+}
+
+struct ModernCategoryCard: View {
+    let category: Category
+    let isSelected: Bool
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Category icon
+            ZStack {
+                Circle()
+                    .fill(Color(hex: category.colorHex ?? "#767676").opacity(0.2))
+                    .frame(width: 40, height: 40)
+                
+                Image(systemName: categoryIcon(for: category.name ?? ""))
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(Color(hex: category.colorHex ?? "#767676"))
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(category.name ?? "Unknown")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                
+                Text("\(recipeCount(for: category)) recipes")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(isSelected ? Color.accentColor.opacity(0.1) : Color(.systemGray6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                )
+        )
+    }
+    
+    private func categoryIcon(for categoryName: String) -> String {
+        switch categoryName.lowercased() {
+        case "soups":
+            return "drop.circle"
+        case "stews":
+            return "flame"
+        case "rice dishes":
+            return "circle.grid.3x3"
+        case "street food":
+            return "cart"
+        case "breakfast":
+            return "sun.horizon"
+        case "desserts":
+            return "heart.circle"
+        case "drinks":
+            return "cup.and.saucer"
+        case "sides":
+            return "square.3.layers.3d"
+        default:
+            return "fork.knife"
+        }
+    }
+    
+    private func recipeCount(for category: Category) -> Int {
+        return category.recipes?.count ?? 0
+    }
+}
+
+struct ModernRecipeCard: View {
+    let recipe: Recipe
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Recipe image
+            if let imageName = recipe.imageName, !imageName.isEmpty {
+                AsyncImageView.asset(imageName, cornerRadius: 12)
+                    .frame(width: 80, height: 80)
+                    .clipped()
+            } else {
+                AsyncImageView.placeholder(
+                    color: Color.accentColor.opacity(0.3),
+                    text: recipe.name,
+                    cornerRadius: 12
+                )
+                .frame(width: 80, height: 80)
+            }
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text(recipe.name ?? "Unknown Recipe")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                
+                if let description = recipe.recipeDescription, !description.isEmpty {
+                    Text(description)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                }
+                
+                HStack(spacing: 12) {
+                    if recipe.prepTime > 0 || recipe.cookTime > 0 {
+                        Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
+                        Label(difficulty, systemImage: "speedometer")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    if recipe.isFavorite {
+                        Image(systemName: "heart.fill")
+                            .foregroundColor(.red)
+                            .font(.system(size: 14))
+                    }
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        )
+    }
+}
+
+struct HorizontalCategoryCard: View {
+    let category: Category
+    let isSelected: Bool
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            // Category icon
+            Image(systemName: categoryIcon(for: category.name ?? ""))
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(isSelected ? .white : Color(hex: category.colorHex ?? "#767676"))
+            
+            Text(category.name ?? "Unknown")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(isSelected ? .white : .primary)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(
+            Capsule()
+                .fill(isSelected ? Color(hex: category.colorHex ?? "#767676") : Color(.systemGray6))
+        )
+    }
+    
+    private func categoryIcon(for categoryName: String) -> String {
+        switch categoryName.lowercased() {
+        case "soups":
+            return "drop.circle"
+        case "stews":
+            return "flame"
+        case "rice dishes":
+            return "circle.grid.3x3"
+        case "street food":
+            return "cart"
+        case "breakfast":
+            return "sun.horizon"
+        case "desserts":
+            return "heart.circle"
+        case "drinks":
+            return "cup.and.saucer"
+        case "sides":
+            return "square.3.layers.3d"
+        default:
+            return "fork.knife"
         }
     }
 }
