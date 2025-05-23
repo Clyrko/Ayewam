@@ -29,44 +29,99 @@ struct ContentView: View {
                     .tag(3)
             }
 
-            HStack {
-                ForEach(0..<4) { index in
-                    Button(action: {
-                        selectedTab = index
-                    }) {
-                        Image(systemName: tabIcon(for: index))
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(selectedTab == index ? .white : .gray)
-                            .frame(width: 44, height: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(selectedTab == index ? Color.accentColor : Color.clear)
-                            )
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 12)
-            .background(.ultraThinMaterial)
-            .cornerRadius(20)
-            .padding(.horizontal)
+            // ENHANCED: Modern Glassmorphism Tab Bar
+            modernTabBar
         }
         .ignoresSafeArea(.keyboard)
+    }
+    
+    // MARK: - Modern Tab Bar with Glassmorphism
+    private var modernTabBar: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<4) { index in
+                Button(action: {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        selectedTab = index
+                    }
+                }) {
+                    VStack(spacing: 4) {
+                        ZStack {
+                            // Background circle for selected state
+                            if selectedTab == index {
+                                Circle()
+                                    .fill(Color.accentColor)
+                                    .frame(width: 50, height: 50)
+                                    .scaleEffect(selectedTab == index ? 1.0 : 0.8)
+                                    .animation(.spring(response: 0.4, dampingFraction: 0.6), value: selectedTab)
+                            }
+                            
+                            Image(systemName: tabIcon(for: index))
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(selectedTab == index ? .white : .secondary)
+                                .scaleEffect(selectedTab == index ? 1.1 : 1.0)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedTab)
+                        }
+                        
+                        Text(tabTitle(for: index))
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(selectedTab == index ? .primary : .secondary)
+                            .opacity(selectedTab == index ? 1.0 : 0.7)
+                            .animation(.easeInOut(duration: 0.2), value: selectedTab)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(.ultraThinMaterial)
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.3),
+                            Color.white.opacity(0.1)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(
+            color: Color.black.opacity(0.1),
+            radius: 20,
+            x: 0,
+            y: 8
+        )
+        .padding(.horizontal, 20)
+        .padding(.bottom, 34)
     }
 
     func tabIcon(for index: Int) -> String {
         switch index {
-        case 0: return "book"
-        case 1: return "square.grid.2x2"
-        case 2: return "heart"
-        case 3: return "info.circle"
+        case 0: return "book.closed.fill"
+        case 1: return "square.grid.2x2.fill"
+        case 2: return "heart.fill"
+        case 3: return "info.circle.fill"
         default: return "questionmark"
+        }
+    }
+    
+    func tabTitle(for index: Int) -> String {
+        switch index {
+        case 0: return "Recipes"
+        case 1: return "Categories"
+        case 2: return "Favorites"
+        case 3: return "About"
+        default: return ""
         }
     }
 }
 
-// MARK: - Smart Home Recipe View (Enhanced with AI Recommendations)
+// MARK: - Smart Home Recipe View (Enhanced with Modern Design)
 
 struct SmartHomeRecipeView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -95,29 +150,41 @@ struct SmartHomeRecipeView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Time-based greeting section
-                timeBasedGreetingSection
+            VStack(alignment: .leading, spacing: 32) {
+                // ENHANCED: Modern time-based greeting with gradient
+                modernGreetingSection
                 
-                // Search and filter section
-                searchAndFilterSection
+                // ENHANCED: Modern search bar with glassmorphism
+                modernSearchSection
                 
-                // SMART RECOMMENDATIONS SECTION
+                // ENHANCED: Smart recommendations with improved design
                 smartRecommendationsSection
                 
-                // Curated recipes for time of day
-                curatedRecipesSection
+                // ENHANCED: Modern curated recipes section
+                modernCuratedSection
                 
-                // Categories section with icons
-                categoriesSection
+                // ENHANCED: Categories with improved cards
+                modernCategoriesSection
                 
-                // All recipes section
-                allRecipesSection
+                // ENHANCED: All recipes with modern card design
+                modernAllRecipesSection
             }
             .padding(.top, 8)
         }
         .navigationBarHidden(true)
-        .background(Color(.systemBackground))
+        .background(
+            // ENHANCED: Dynamic gradient background
+            LinearGradient(
+                colors: [
+                    Color(.systemBackground),
+                    Color(.systemBackground).opacity(0.8),
+                    Color(.systemGray6).opacity(0.3)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        )
         .onAppear {
             loadSmartRecommendations()
         }
@@ -126,35 +193,134 @@ struct SmartHomeRecipeView: View {
         }
     }
     
-    // MARK: - Smart Recommendations Section (NEW!)
+    // MARK: - Modern Greeting Section
+    private var modernGreetingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(timeBasedGreeting)
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.primary, .primary.opacity(0.7)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                    
+                    Text("What would you like to cook today?")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // ENHANCED: Profile/Settings icon with modern styling
+                Button(action: {
+                    // TODO: Profile action
+                }) {
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Image(systemName: "person.crop.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.secondary)
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+                }
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 20)
+    }
     
+    // MARK: - Modern Search Section
+    private var modernSearchSection: some View {
+        HStack(spacing: 16) {
+            // ENHANCED: Modern search field with glassmorphism
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 18, weight: .medium))
+                
+                TextField("Search recipes...", text: $searchText)
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .font(.system(size: 16, weight: .medium))
+                
+                if !searchText.isEmpty {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            searchText = ""
+                        }
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 16))
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
+            
+            // ENHANCED: Modern filter button
+            Button(action: {
+                // TODO: Implement filter functionality
+            }) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.primary)
+                    .frame(width: 52, height: 52)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                    )
+            }
+        }
+        .padding(.horizontal, 24)
+    }
+    
+    // MARK: - Smart Recommendations Section (Enhanced)
     private var smartRecommendationsSection: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 24) {
             if isLoadingRecommendations {
-                // Loading state
-                VStack(alignment: .leading, spacing: 16) {
+                // Enhanced loading state
+                VStack(alignment: .leading, spacing: 20) {
                     HStack {
                         Text("Smart Suggestions")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.primary)
                         
                         Image(systemName: "sparkles")
                             .font(.title3)
                             .foregroundColor(.blue)
+                            .symbolEffect(.variableColor.iterative)
                         
                         Spacer()
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 24)
                     
                     RecommendationLoadingView()
                 }
             } else if recommendationSections.isEmpty {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 20) {
                     HStack {
                         Text("Smart Suggestions")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.primary)
                         
                         Image(systemName: "sparkles")
@@ -163,53 +329,205 @@ struct SmartHomeRecipeView: View {
                         
                         Spacer()
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 24)
                     
                     RecommendationEmptyView()
                 }
             } else {
-                // Recommendations content
-                VStack(alignment: .leading, spacing: 24) {
-                    // Section header
+                // ENHANCED: Recommendations content with modern styling
+                VStack(alignment: .leading, spacing: 28) {
+                    // Section header with improved styling
                     HStack {
-                        Text("Smart Suggestions")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primary)
-                        
-                        Image(systemName: "sparkles")
-                            .font(.title3)
-                            .foregroundColor(.blue)
+                        HStack(spacing: 8) {
+                            Text("Smart Suggestions")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.primary)
+                            
+                            Image(systemName: "sparkles")
+                                .font(.title3)
+                                .foregroundColor(.blue)
+                                .symbolEffect(.bounce, value: recommendationSections.count)
+                        }
                         
                         Spacer()
                         
-                        // Refresh button
+                        // Enhanced refresh button
                         Button(action: {
                             Task { await refreshRecommendations() }
                         }) {
                             Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 16))
+                                .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(.secondary)
+                                .frame(width: 32, height: 32)
+                                .background(
+                                    Circle()
+                                        .fill(.ultraThinMaterial)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                        )
+                                )
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 24)
                     
-                    // Recommendation sections
+                    // Recommendation sections with staggered animation
                     ForEach(recommendationSections.indices, id: \.self) { index in
                         RecommendationSectionView(section: recommendationSections[index])
-                            .transition(.opacity.combined(with: .slide))
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .leading).combined(with: .opacity)
+                            ))
+                            .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(Double(index) * 0.1), value: recommendationSections.count)
                     }
                 }
             }
         }
     }
     
-    // MARK: - Smart Recommendations Logic
+    // MARK: - Modern Curated Section
+    private var modernCuratedSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(curatedSectionTitle)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Perfectly timed for you")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Button(action: {
+                    // TODO: Show all curated recipes
+                }) {
+                    HStack(spacing: 4) {
+                        Text("See All")
+                            .font(.system(size: 14, weight: .semibold))
+                        
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundColor(.accentColor)
+                }
+            }
+            .padding(.horizontal, 24)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 20) {
+                    ForEach(curatedRecipes, id: \.self) { recipe in
+                        NavigationLink {
+                            RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
+                        } label: {
+                            ModernCuratedCard(recipe: recipe)
+                        }
+                        .buttonStyle(.plain)
+                        .onTapGesture {
+                            if let recipeId = recipe.id {
+                                UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+        }
+    }
     
+    // MARK: - Modern Categories Section
+    private var modernCategoriesSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Browse by Category")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Explore Ghanaian cuisine")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Button(action: {
+                    // TODO: Show all categories
+                }) {
+                    HStack(spacing: 4) {
+                        Text("See All")
+                            .font(.system(size: 14, weight: .semibold))
+                        
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundColor(.accentColor)
+                }
+            }
+            .padding(.horizontal, 24)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(categories, id: \.self) { category in
+                        Button(action: {
+                            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                selectedCategory = (selectedCategory == category) ? nil : category
+                            }
+                        }) {
+                            ModernCategoryCard(
+                                category: category,
+                                isSelected: selectedCategory == category
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+        }
+    }
+    
+    // MARK: - Modern All Recipes Section
+    private var modernAllRecipesSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                Text("All Recipes")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Text("\(filteredRecipes.count) recipes")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 24)
+            
+            LazyVStack(spacing: 20) {
+                ForEach(filteredRecipes, id: \.self) { recipe in
+                    NavigationLink {
+                        RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
+                    } label: {
+                        ModernRecipeCard(recipe: recipe)
+                    }
+                    .buttonStyle(.plain)
+                    .onTapGesture {
+                        if let recipeId = recipe.id {
+                            UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 24)
+        }
+    }
+    
+    // MARK: - Smart Recommendations Logic (unchanged)
     private func loadSmartRecommendations() {
         isLoadingRecommendations = true
         
-        // Simulate brief loading time for smooth UX
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             let sections = recommendationEngine.getRecommendations()
             
@@ -236,178 +554,7 @@ struct SmartHomeRecipeView: View {
         }
     }
     
-    // MARK: - Original HomeRecipeView Sections
-    
-    private var timeBasedGreetingSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(timeBasedGreeting)
-                .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundColor(.primary)
-            
-            Text("What would you like to cook today?")
-                .font(.title3)
-                .foregroundColor(.secondary)
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 12)
-    }
-    
-    private var searchAndFilterSection: some View {
-        HStack(spacing: 12) {
-            // Search field
-            HStack(spacing: 12) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 16, weight: .medium))
-                
-                TextField("Search recipes...", text: $searchText)
-                    .textFieldStyle(PlainTextFieldStyle())
-                
-                if !searchText.isEmpty {
-                    Button(action: { searchText = "" }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                            .font(.system(size: 16))
-                    }
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemGray6))
-            )
-            
-            // Filter button (placeholder for now)
-            Button(action: {
-                // TODO: Implement filter functionality
-            }) {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.primary)
-                    .frame(width: 44, height: 44)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(.systemGray6))
-                    )
-            }
-        }
-        .padding(.horizontal, 20)
-    }
-    
-    private var curatedRecipesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text(curatedSectionTitle)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Button(action: {
-                    // TODO: Show all curated recipes
-                }) {
-                    Text("See All")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.accentColor)
-                }
-            }
-            .padding(.horizontal, 20)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(curatedRecipes, id: \.self) { recipe in
-                        NavigationLink {
-                            RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
-                        } label: {
-                            CuratedRecipeCard(recipe: recipe)
-                        }
-                        .buttonStyle(.plain)
-                        .onTapGesture {
-                            // Track recipe view for recommendations
-                            if let recipeId = recipe.id {
-                                UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 20)
-            }
-        }
-    }
-    
-    private var categoriesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Browse by Category")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Button(action: {
-                    // TODO: Show all categories
-                }) {
-                    Text("See All")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.accentColor)
-                }
-            }
-            .padding(.horizontal, 20)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(categories, id: \.self) { category in
-                        Button(action: {
-                            selectedCategory = (selectedCategory == category) ? nil : category
-                        }) {
-                            HorizontalCategoryCard(
-                                category: category,
-                                isSelected: selectedCategory == category
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 20)
-            }
-        }
-    }
-    
-    private var allRecipesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("All Recipes")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-                .padding(.horizontal, 20)
-            
-            LazyVStack(spacing: 16) {
-                ForEach(filteredRecipes, id: \.self) { recipe in
-                    NavigationLink {
-                        RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
-                    } label: {
-                        ModernRecipeCard(recipe: recipe)
-                    }
-                    .buttonStyle(.plain)
-                    .onTapGesture {
-                        // Track recipe view for recommendations
-                        if let recipeId = recipe.id {
-                            UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, 20)
-        }
-    }
-    
-    // MARK: - Computed Properties (from original HomeRecipeView)
-    
+    // MARK: - Computed Properties (unchanged logic, but will enhance the cards)
     private var timeBasedGreeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -440,7 +587,6 @@ struct SmartHomeRecipeView: View {
         
         switch hour {
         case 5...11:
-            // Morning - lighter dishes, breakfast items
             return allRecipes.filter { recipe in
                 let name = recipe.name?.lowercased() ?? ""
                 return name.contains("tea") || name.contains("bread") ||
@@ -449,27 +595,23 @@ struct SmartHomeRecipeView: View {
                        recipe.prepTime + recipe.cookTime <= 20
             }.prefix(5).map { $0 }
         case 12...14:
-            // Lunch - medium prep time dishes
             return allRecipes.filter { recipe in
                 let totalTime = recipe.prepTime + recipe.cookTime
                 return totalTime > 20 && totalTime <= 45
             }.prefix(5).map { $0 }
         case 17...21:
-            // Dinner - heartier dishes, soups, stews
             return allRecipes.filter { recipe in
                 let name = recipe.name?.lowercased() ?? ""
                 return name.contains("soup") || name.contains("stew") ||
                        name.contains("rice") || name.contains("fufu")
             }.prefix(5).map { $0 }
         default:
-            // Late night - quick and easy
             return allRecipes.filter { recipe in
                 recipe.prepTime + recipe.cookTime <= 30
             }.prefix(5).map { $0 }
         }
     }
     
-    // Filter recipes based on selected category and search text
     private var filteredRecipes: [Recipe] {
         recipes.filter { recipe in
             let categoryMatch: Bool
@@ -479,7 +621,6 @@ struct SmartHomeRecipeView: View {
                 categoryMatch = true
             }
             
-            // Search text filter
             let searchMatch: Bool
             if searchText.isEmpty {
                 searchMatch = true
@@ -494,51 +635,105 @@ struct SmartHomeRecipeView: View {
     }
 }
 
-// MARK: - Supporting Views (unchanged from original)
+// MARK: - Modern Card Components (Enhanced)
 
-struct CuratedRecipeCard: View {
+struct ModernCuratedCard: View {
     let recipe: Recipe
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Recipe image
-            if let imageName = recipe.imageName, !imageName.isEmpty {
-                AsyncImageView.asset(imageName, cornerRadius: 16)
-                    .frame(width: 180, height: 120)
-                    .clipped()
-            } else {
-                AsyncImageView.placeholder(
-                    color: Color.accentColor.opacity(0.3),
-                    text: recipe.name,
-                    cornerRadius: 16
+            // ENHANCED: Recipe image with overlay gradient
+            ZStack(alignment: .bottomLeading) {
+                if let imageName = recipe.imageName, !imageName.isEmpty {
+                    AsyncImageView.asset(imageName, cornerRadius: 20)
+                        .frame(width: 200, height: 140)
+                        .clipped()
+                } else {
+                    AsyncImageView.placeholder(
+                        color: Color.accentColor.opacity(0.3),
+                        text: recipe.name,
+                        cornerRadius: 20
+                    )
+                    .frame(width: 200, height: 140)
+                }
+                
+                // ENHANCED: Gradient overlay for better text readability
+                LinearGradient(
+                    colors: [Color.clear, Color.black.opacity(0.6)],
+                    startPoint: .top,
+                    endPoint: .bottom
                 )
-                .frame(width: 180, height: 120)
+                .frame(height: 60)
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        cornerRadii: .init(
+                            topLeading: 0,
+                            bottomLeading: 20,
+                            bottomTrailing: 20,
+                            topTrailing: 0
+                        )
+                    )
+                )
+                
+                // ENHANCED: Time badge
+                if recipe.prepTime > 0 || recipe.cookTime > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 10))
+                        
+                        Text("\(recipe.prepTime + recipe.cookTime) min")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                    )
+                    .padding(12)
+                }
             }
             
-            VStack(alignment: .leading, spacing: 6) {
+            // ENHANCED: Recipe info with better spacing
+            VStack(alignment: .leading, spacing: 8) {
                 Text(recipe.name ?? "Unknown Recipe")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 16, weight: .bold))
                     .lineLimit(1)
                     .foregroundColor(.primary)
                 
                 HStack(spacing: 8) {
-                    if recipe.prepTime > 0 || recipe.cookTime > 0 {
-                        Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
-                            .font(.caption)
+                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
+                        Text(difficulty)
+                            .font(.system(size: 12, weight: .medium))
                             .foregroundColor(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(
+                                Capsule()
+                                    .fill(Color(.systemGray6))
+                            )
                     }
                     
-                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
-                        Text("• \(difficulty)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    Spacer()
+                    
+                    if recipe.isFavorite {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.red)
                     }
                 }
             }
-            .padding(.top, 12)
+            .padding(16)
         }
-        .frame(width: 180)
+        .frame(width: 200)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 6)
     }
 }
 
@@ -547,118 +742,170 @@ struct ModernRecipeCard: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            // Recipe image
-            if let imageName = recipe.imageName, !imageName.isEmpty {
-                AsyncImageView.asset(imageName, cornerRadius: 12)
-                    .frame(width: 80, height: 80)
-                    .clipped()
-            } else {
-                AsyncImageView.placeholder(
-                    color: Color.accentColor.opacity(0.3),
-                    text: recipe.name,
-                    cornerRadius: 12
-                )
-                .frame(width: 80, height: 80)
+            // ENHANCED: Recipe image with better styling
+            ZStack {
+                if let imageName = recipe.imageName, !imageName.isEmpty {
+                    AsyncImageView.asset(imageName, cornerRadius: 16)
+                        .frame(width: 90, height: 90)
+                        .clipped()
+                } else {
+                    AsyncImageView.placeholder(
+                        color: Color.accentColor.opacity(0.3),
+                        text: recipe.name,
+                        cornerRadius: 16
+                    )
+                    .frame(width: 90, height: 90)
+                }
+                
+                // ENHANCED: Favorite heart overlay
+                if recipe.isFavorite {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            
+                            Image(systemName: "heart.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(.white)
+                                .padding(6)
+                                .background(
+                                    Circle()
+                                        .fill(.red)
+                                        .shadow(color: .black.opacity(0.2), radius: 2)
+                                )
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(8)
+                }
             }
             
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(recipe.name ?? "Unknown Recipe")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.primary)
                     .lineLimit(1)
                 
                 if let description = recipe.recipeDescription, !description.isEmpty {
                     Text(description)
-                        .font(.subheadline)
+                        .font(.system(size: 14))
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
                 
                 HStack(spacing: 12) {
                     if recipe.prepTime > 0 || recipe.cookTime > 0 {
-                        Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock.fill")
+                                .font(.system(size: 12))
+                                .foregroundColor(.blue)
+                            
+                            Text("\(recipe.prepTime + recipe.cookTime) min")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
                     if let difficulty = recipe.difficulty, !difficulty.isEmpty {
-                        Label(difficulty, systemImage: "speedometer")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "speedometer")
+                                .font(.system(size: 12))
+                                .foregroundColor(.orange)
+                            
+                            Text(difficulty)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
                     Spacer()
-                    
-                    if recipe.isFavorite {
-                        Image(systemName: "heart.fill")
-                            .foregroundColor(.red)
-                            .font(.system(size: 14))
-                    }
                 }
             }
             
             Spacer()
+            
+            // ENHANCED: Arrow indicator
+            Image(systemName: "chevron.right")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Color(UIColor.tertiaryLabel))
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        .padding(20)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.white.opacity(0.2), lineWidth: 1)
         )
+        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
     }
 }
 
-struct HorizontalCategoryCard: View {
+struct ModernCategoryCard: View {
     let category: Category
     let isSelected: Bool
     
     var body: some View {
-        HStack(spacing: 8) {
-            // Category icon
+        HStack(spacing: 12) {
+            // ENHANCED: Category icon with modern styling
             Image(systemName: categoryIcon(for: category.name ?? ""))
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(isSelected ? .white : Color(hex: category.colorHex ?? "#767676"))
+                .frame(width: 32, height: 32)
+                .background(
+                    Circle()
+                        .fill(isSelected ? Color(hex: category.colorHex ?? "#767676") : Color(hex: category.colorHex ?? "#767676").opacity(0.1))
+                )
             
             Text(category.name ?? "Unknown")
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(isSelected ? .white : .primary)
                 .lineLimit(1)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
         .background(
             Capsule()
                 .fill(isSelected ? Color(hex: category.colorHex ?? "#767676") : Color(.systemGray6))
+                .overlay(
+                    Capsule()
+                        .stroke(isSelected ? Color.clear : Color.white.opacity(0.3), lineWidth: 1)
+                )
         )
+        .shadow(
+            color: isSelected ? Color(hex: category.colorHex ?? "#767676").opacity(0.3) : Color.black.opacity(0.05),
+            radius: isSelected ? 8 : 4,
+            x: 0,
+            y: isSelected ? 4 : 2
+        )
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isSelected)
     }
     
     private func categoryIcon(for categoryName: String) -> String {
         switch categoryName.lowercased() {
         case "soups":
-            return "drop.circle"
+            return "drop.circle.fill"
         case "stews":
-            return "flame"
+            return "flame.fill"
         case "rice dishes":
-            return "circle.grid.3x3"
+            return "circle.grid.3x3.fill"
         case "street food":
-            return "cart"
+            return "cart.fill"
         case "breakfast":
-            return "sun.horizon"
+            return "sun.horizon.fill"
         case "desserts":
-            return "heart.circle"
+            return "heart.circle.fill"
         case "drinks":
-            return "cup.and.saucer"
+            return "cup.and.saucer.fill"
         case "sides":
-            return "square.3.layers.3d"
+            return "square.3.layers.3d.fill"
         default:
             return "fork.knife"
         }
     }
 }
 
-// MARK: - Favorites and About Views (unchanged)
+// MARK: - Favorites and About Views (Enhanced)
 
 struct FavoritesView: View {
     @ObservedObject private var viewModel = DataManager.shared.favoriteViewModel
@@ -672,138 +919,606 @@ struct FavoritesView: View {
                     viewModel.loadFavorites()
                 }
             } else if viewModel.favoriteRecipes.isEmpty {
-                emptyFavoritesView
+                modernEmptyFavoritesView
             } else {
-                favoritesList
+                modernFavoritesList
             }
         }
         .navigationTitle("Favorites")
+        .background(
+            LinearGradient(
+                colors: [
+                    Color(.systemBackground),
+                    Color(.systemGray6).opacity(0.3)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        )
         .onAppear {
             viewModel.loadFavorites()
         }
     }
     
-    private var emptyFavoritesView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "heart.slash")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
+    private var modernEmptyFavoritesView: some View {
+        VStack(spacing: 24) {
+            // ENHANCED: Modern empty state with gradient and animation
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.red.opacity(0.1), Color.pink.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 120, height: 120)
+                    .scaleEffect(1.0)
+                    .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: true)
+                
+                Image(systemName: "heart.slash.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.red.opacity(0.7), .pink.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .symbolEffect(.bounce, options: .repeat(.continuous))
+            }
             
-            Text("No Favorites Yet")
-                .font(.title2)
-                .fontWeight(.medium)
+            VStack(spacing: 12) {
+                Text("No Favorites Yet")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+                
+                Text("Tap the heart icon on any recipe to add it to your favorites")
+                    .font(.system(size: 16))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                    .lineSpacing(2)
+            }
             
-            Text("Tap the heart icon on any recipe to add it to your favorites")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+            // ENHANCED: Call-to-action button with modern styling
+            NavigationLink(destination: SmartHomeRecipeView()) {
+                HStack(spacing: 12) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 16, weight: .semibold))
+                    
+                    Text("Explore Recipes")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 14)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [.red, .pink],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .shadow(color: .red.opacity(0.4), radius: 12, x: 0, y: 6)
+                )
+            }
+            .padding(.top, 16)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
     }
     
-    private var favoritesList: some View {
-        List {
-            ForEach(viewModel.favoriteRecipes, id: \.self) { recipe in
-                NavigationLink {
-                    RecipeDetailView(
-                        recipe: recipe,
-                        viewModel: DataManager.shared.recipeViewModel
+    private var modernFavoritesList: some View {
+        ScrollView {
+            LazyVStack(spacing: 20) {
+                // ENHANCED: Header with count and animation
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Your Favorites")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.primary)
+                        
+                        Text("\(viewModel.favoriteRecipes.count) saved recipes")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    // ENHANCED: Animated heart count
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.red)
+                            .symbolEffect(.pulse)
+                        
+                        Text("\(viewModel.favoriteRecipes.count)")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.primary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            )
                     )
-                } label: {
-                    RecipeRowView(recipe: recipe)
                 }
-                .swipeActions {
-                    Button(role: .destructive) {
-                        viewModel.toggleFavorite(recipe)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                
+                ForEach(Array(viewModel.favoriteRecipes.enumerated()), id: \.element) { index, recipe in
+                    NavigationLink {
+                        RecipeDetailView(
+                            recipe: recipe,
+                            viewModel: DataManager.shared.recipeViewModel
+                        )
                     } label: {
-                        Label("Remove", systemImage: "heart.slash")
+                        ModernFavoriteCard(recipe: recipe) {
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                viewModel.toggleFavorite(recipe)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                        removal: .move(edge: .leading).combined(with: .scale)
+                    ))
+                    .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(Double(index) * 0.05), value: viewModel.favoriteRecipes.count)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 100) // Extra padding for tab bar
+        }
+    }
+}
+
+struct ModernFavoriteCard: View {
+    let recipe: Recipe
+    let onRemove: () -> Void
+    @State private var isRemoving = false
+    @State private var isPressed = false
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // ENHANCED: Recipe image with favorite overlay
+            ZStack(alignment: .topTrailing) {
+                if let imageName = recipe.imageName, !imageName.isEmpty {
+                    AsyncImageView.asset(imageName, cornerRadius: 18)
+                        .frame(width: 90, height: 90)
+                        .clipped()
+                } else {
+                    AsyncImageView.placeholder(
+                        color: Color.red.opacity(0.3),
+                        text: recipe.name,
+                        cornerRadius: 18
+                    )
+                    .frame(width: 90, height: 90)
+                }
+                
+                // ENHANCED: Favorite indicator with glow effect
+                Circle()
+                    .fill(.red)
+                    .frame(width: 24, height: 24)
+                    .overlay(
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white)
+                    )
+                    .shadow(color: .red.opacity(0.4), radius: 4, x: 0, y: 2)
+                    .offset(x: 4, y: -4)
+                    .scaleEffect(isRemoving ? 0.8 : 1.0)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isRemoving)
+            }
+            
+            VStack(alignment: .leading, spacing: 10) {
+                Text(recipe.name ?? "Unknown Recipe")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                
+                if let description = recipe.recipeDescription, !description.isEmpty {
+                    Text(description)
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .lineSpacing(1)
+                }
+                
+                // ENHANCED: Recipe metadata with improved styling
+                HStack(spacing: 16) {
+                    if recipe.prepTime > 0 || recipe.cookTime > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock.fill")
+                                .font(.system(size: 12))
+                                .foregroundColor(.blue)
+                            
+                            Text("\(recipe.prepTime + recipe.cookTime) min")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color.blue.opacity(0.1))
+                        )
+                    }
+                    
+                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "speedometer")
+                                .font(.system(size: 12))
+                                .foregroundColor(.orange)
+                            
+                            Text(difficulty)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color.orange.opacity(0.1))
+                        )
+                    }
+                    
+                    Spacer()
+                }
+            }
+            
+            Spacer()
+            
+            // ENHANCED: Remove button with haptic feedback
+            Button(action: {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
+                
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    isRemoving = true
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    onRemove()
+                }
+            }) {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.red)
+                    .scaleEffect(isPressed ? 0.9 : 1.0)
+                    .opacity(isRemoving ? 0.5 : 1.0)
+            }
+            .scaleEffect(isPressed ? 0.95 : 1.0)
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    isPressed = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        isPressed = false
                     }
                 }
             }
         }
-        .listStyle(InsetGroupedListStyle())
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.3), Color.white.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 6)
+        .scaleEffect(isRemoving ? 0.95 : 1.0)
+        .opacity(isRemoving ? 0.7 : 1.0)
+        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isRemoving)
     }
 }
 
 struct AboutView: View {
+    @State private var showCredits = false
+    
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // App info header
-                VStack(alignment: .center, spacing: 16) {
-                    Image(systemName: "book.closed")
-                        .font(.system(size: 60))
-                        .foregroundColor(Color.ghGreen)
+            VStack(alignment: .leading, spacing: 36) {
+                // ENHANCED: Hero section with animated elements
+                VStack(alignment: .center, spacing: 24) {
+                    ZStack {
+                        // ENHANCED: Animated background circles
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.ghGreen.opacity(0.15), Color.ghYellow.opacity(0.15)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 140, height: 140)
+                            .scaleEffect(1.0)
+                            .animation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true), value: true)
+                        
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.ghRed.opacity(0.1), Color.ghYellow.opacity(0.1)],
+                                    startPoint: .bottomLeading,
+                                    endPoint: .topTrailing
+                                )
+                            )
+                            .frame(width: 120, height: 120)
+                            .scaleEffect(0.9)
+                            .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: true)
+                        
+                        Image(systemName: "book.closed.fill")
+                            .font(.system(size: 52))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color.ghGreen, Color.ghYellow, Color.ghRed],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .symbolEffect(.bounce, options: .repeat(.periodic(delay: 3.0)))
+                    }
                     
-                    Text("Ayewam")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    Text("Authentic Ghanaian Recipes")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
+                    VStack(spacing: 12) {
+                        Text("Ayewam")
+                            .font(.system(size: 36, weight: .bold, design: .rounded))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.primary, .primary.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                        
+                        Text("Authentic Ghanaian Recipes")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.bottom, 20)
+                .padding(.bottom, 8)
                 
-                // App description
-                Group {
-                    Text("About Ayewam")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                // ENHANCED: Feature highlights with modern cards
+                VStack(spacing: 20) {
+                    ModernFeatureCard(
+                        title: "About Ayewam",
+                        description: "Ayewam is your guide to authentic Ghanaian cuisine, offering traditional recipes with step-by-step instructions. Explore the rich culinary heritage of Ghana through our carefully curated collection of dishes.",
+                        icon: "info.circle.fill",
+                        gradientColors: [.blue, .cyan]
+                    )
                     
-                    Text("Ayewam is your guide to authentic Ghanaian cuisine, offering traditional recipes with step-by-step instructions. Explore the rich culinary heritage of Ghana through our carefully curated collection of dishes.")
-                        .padding(.bottom, 8)
+                    ModernFeatureCard(
+                        title: "Smart Cooking",
+                        description: "Experience guided cooking with integrated timers, step-by-step instructions, and personalized recipe recommendations based on your preferences and cooking history.",
+                        icon: "brain.head.profile",
+                        gradientColors: [.purple, .pink]
+                    )
                     
-                    Text("Whether you're looking to prepare Jollof Rice, Light Soup, or other Ghanaian classics, Ayewam provides you with the knowledge and guidance to create authentic dishes at home.")
+                    ModernFeatureCard(
+                        title: "Ghanaian Cuisine",
+                        description: "Discover the rich flavors of Ghana with our collection of traditional stews, soups, and one-pot dishes. Learn about key ingredients like plantains, cassava, yams, and aromatic spices.",
+                        icon: "globe.africa.fill",
+                        gradientColors: [.green, .mint]
+                    )
                 }
-                .padding(.horizontal)
                 
-                Divider()
-                    .padding(.vertical)
-                
-                // Ghanaian cuisine info
-                Group {
-                    Text("Ghanaian Cuisine")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .padding(.horizontal)
+                // ENHANCED: Ghana flag section with animation
+                VStack(alignment: .leading, spacing: 20) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "flag.fill")
+                            .font(.system(size: 24))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.orange, .red],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        
+                        Text("Republic of Ghana")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(.primary)
+                    }
                     
-                    Text("Ghanaian cuisine is known for its flavorful stews, soups, and one-pot dishes. Key ingredients include plantains, cassava, yams, corn, beans, and various proteins. Dishes are often seasoned with aromatic spices and herbs.")
-                        .padding(.horizontal)
-                        .padding(.bottom, 8)
-                    
-                    // Ghana flag colors
+                    // ENHANCED: Animated Ghana flag
                     HStack(spacing: 0) {
                         Color.ghRed
                         Color.ghYellow
                         Color.ghGreen
                     }
-                    .frame(height: 20)
-                    .cornerRadius(4)
-                    .padding(.horizontal)
-                }
-                
-                Divider()
-                    .padding(.vertical)
-                
-                // App version and credits
-                VStack(alignment: .center, spacing: 8) {
-                    Text("Version 1.0")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    .frame(height: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.4), Color.white.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                    )
+                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                     
-                    Text("© 2025 Justyn Adusei-Prempeh")
-                        .font(.caption)
+                    Text("The colors represent the mineral wealth (gold), forests and agriculture (green), and the blood of those who fought for independence (red).")
+                        .font(.system(size: 14))
                         .foregroundColor(.secondary)
+                        .lineSpacing(2)
+                }
+                .padding(24)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [Color.white.opacity(0.3), Color.white.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
+                )
+                .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 6)
+                
+                Spacer(minLength: 40)
+                
+                // ENHANCED: Credits section with tap interaction
+                VStack(spacing: 16) {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                            showCredits.toggle()
+                        }
+                    }) {
+                        VStack(spacing: 8) {
+                            Text("Made with ❤️ in Ghana")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.primary)
+                            
+                            HStack(spacing: 4) {
+                                Text("Tap to view credits")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                                
+                                Image(systemName: showCredits ? "chevron.up" : "chevron.down")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    
+                    if showCredits {
+                        VStack(spacing: 8) {
+                            Text("Version 1.0")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.secondary)
+                            
+                            Text("© 2025 Justyn Adusei-Prempeh")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color(UIColor.tertiaryLabel))
+
+                            Text("Built with SwiftUI & Core Data")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color(UIColor.quaternaryLabel))
+                        }
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.bottom, 30)
+                .padding(.bottom, 100) // Extra padding for tab bar
             }
-            .padding()
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
         }
         .navigationTitle("About")
+        .background(
+            LinearGradient(
+                colors: [
+                    Color(.systemBackground),
+                    Color(.systemGray6).opacity(0.2),
+                    Color(.systemBackground)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        )
+    }
+}
+
+struct ModernFeatureCard: View {
+    let title: String
+    let description: String
+    let icon: String
+    let gradientColors: [Color]
+    @State private var isHovered = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: gradientColors.map { $0.opacity(0.15) },
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 50, height: 50)
+                    
+                    Image(systemName: icon)
+                        .font(.system(size: 24))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: gradientColors,
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+                
+                Text(title)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+            }
+            
+            Text(description)
+                .font(.system(size: 16))
+                .foregroundColor(.secondary)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.3), Color.white.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: Color.black.opacity(0.08), radius: isHovered ? 16 : 12, x: 0, y: isHovered ? 8 : 6)
+        .scaleEffect(isHovered ? 1.02 : 1.0)
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isHovered)
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isHovered = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isHovered = false
+                }
+            }
+        }
     }
 }
 
