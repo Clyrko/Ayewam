@@ -7,8 +7,10 @@
 
 import Foundation
 import CoreData
+import Combine
 
 // MARK: - Recommendation Models
+
 struct RecommendationSection {
     let title: String
     let subtitle: String?
@@ -27,14 +29,20 @@ enum RecommendationType {
 }
 
 // MARK: - Core Recommendation Engine
-class ContextualRecommendationEngine {
+
+class ContextualRecommendationEngine: ObservableObject {
     private let context: NSManagedObjectContext
+    
+    // Published properties for reactive UI updates
+    @Published var isLoading = false
+    @Published var lastUpdateTime = Date()
     
     init(context: NSManagedObjectContext) {
         self.context = context
     }
     
     // MARK: - Main Recommendation Method
+    
     /// Returns organized recommendation sections based on current context
     func getRecommendations() -> [RecommendationSection] {
         var sections: [RecommendationSection] = []
@@ -90,7 +98,7 @@ class ContextualRecommendationEngine {
         switch hour {
         case 5...11:
             // Morning suggestions
-            let timeLimit = isWeekend ? 45 : 20
+            let timeLimit = isWeekend ? 45 : 20 // More time on weekends
             let filtered = recipes.filter { recipe in
                 let totalTime = recipe.prepTime + recipe.cookTime
                 return totalTime <= timeLimit &&
@@ -320,7 +328,7 @@ class ContextualRecommendationEngine {
     
     // MARK: - Helper Methods
     
-    private func fetchAllRecipes() -> [Recipe] {
+    public func fetchAllRecipes() -> [Recipe] {
         let request: NSFetchRequest<Recipe> = Recipe.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \Recipe.name, ascending: true)]
         
@@ -358,10 +366,10 @@ extension UserDefaults {
     var recentlyViewedRecipes: [String] {
         get {
             let recent = array(forKey: Keys.recentlyViewedRecipes) as? [String] ?? []
-            return Array(recent.prefix(10))
+            return Array(recent.prefix(20)) // Keep only last 20
         }
         set {
-            let limited = Array(newValue.prefix(10))
+            let limited = Array(newValue.prefix(20))
             set(limited, forKey: Keys.recentlyViewedRecipes)
         }
     }
@@ -376,6 +384,7 @@ extension UserDefaults {
         set { set(newValue, forKey: Keys.preferredCookingTimeSlots) }
     }
     
+    // Helper methods for tracking
     func addCompletedRecipe(_ recipeId: String) {
         var completed = completedRecipes
         if !completed.contains(recipeId) {
@@ -386,7 +395,9 @@ extension UserDefaults {
     
     func addRecentlyViewedRecipe(_ recipeId: String) {
         var recent = recentlyViewedRecipes
+        // Remove if already exists (to move to front)
         recent.removeAll { $0 == recipeId }
+        // Add to front
         recent.insert(recipeId, at: 0)
         recentlyViewedRecipes = recent
     }

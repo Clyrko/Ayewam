@@ -14,8 +14,10 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
-                NavigationView { HomeRecipeView() }
-                    .tag(0)
+                NavigationView {
+                    SmartHomeRecipeView()
+                }
+                .tag(0)
 
                 NavigationView { CategoryListView() }
                     .tag(1)
@@ -64,7 +66,9 @@ struct ContentView: View {
     }
 }
 
-struct HomeRecipeView: View {
+// MARK: - Smart Home Recipe View (Enhanced with AI Recommendations)
+
+struct SmartHomeRecipeView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Recipe.name, ascending: true)],
@@ -78,6 +82,12 @@ struct HomeRecipeView: View {
     
     @State private var selectedCategory: Category?
     @State private var searchText = ""
+    @State private var recommendationSections: [RecommendationSection] = []
+    @State private var isLoadingRecommendations = true
+    
+    private var recommendationEngine: ContextualRecommendationEngine {
+        ContextualRecommendationEngine(context: viewContext)
+    }
     
     init(initialCategory: Category? = nil) {
         self._selectedCategory = State(initialValue: initialCategory)
@@ -92,6 +102,9 @@ struct HomeRecipeView: View {
                 // Search and filter section
                 searchAndFilterSection
                 
+                // SMART RECOMMENDATIONS SECTION
+                smartRecommendationsSection
+                
                 // Curated recipes for time of day
                 curatedRecipesSection
                 
@@ -105,9 +118,126 @@ struct HomeRecipeView: View {
         }
         .navigationBarHidden(true)
         .background(Color(.systemBackground))
+        .onAppear {
+            loadSmartRecommendations()
+        }
+        .refreshable {
+            await refreshRecommendations()
+        }
     }
     
-    // MARK: - Time-based Greeting
+    // MARK: - Smart Recommendations Section (NEW!)
+    
+    private var smartRecommendationsSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            if isLoadingRecommendations {
+                // Loading state
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Text("Smart Suggestions")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        Image(systemName: "sparkles")
+                            .font(.title3)
+                            .foregroundColor(.blue)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    RecommendationLoadingView()
+                }
+            } else if recommendationSections.isEmpty {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Text("Smart Suggestions")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        Image(systemName: "sparkles")
+                            .font(.title3)
+                            .foregroundColor(.blue)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    RecommendationEmptyView()
+                }
+            } else {
+                // Recommendations content
+                VStack(alignment: .leading, spacing: 24) {
+                    // Section header
+                    HStack {
+                        Text("Smart Suggestions")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        Image(systemName: "sparkles")
+                            .font(.title3)
+                            .foregroundColor(.blue)
+                        
+                        Spacer()
+                        
+                        // Refresh button
+                        Button(action: {
+                            Task { await refreshRecommendations() }
+                        }) {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 16))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    // Recommendation sections
+                    ForEach(recommendationSections.indices, id: \.self) { index in
+                        RecommendationSectionView(section: recommendationSections[index])
+                            .transition(.opacity.combined(with: .slide))
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Smart Recommendations Logic
+    
+    private func loadSmartRecommendations() {
+        isLoadingRecommendations = true
+        
+        // Simulate brief loading time for smooth UX
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            let sections = recommendationEngine.getRecommendations()
+            
+            withAnimation(.easeInOut(duration: 0.4)) {
+                self.recommendationSections = sections
+                self.isLoadingRecommendations = false
+            }
+        }
+    }
+    
+    @MainActor
+    private func refreshRecommendations() async {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isLoadingRecommendations = true
+        }
+        
+        try? await Task.sleep(nanoseconds: 400_000_000)
+        
+        let sections = recommendationEngine.getRecommendations()
+        
+        withAnimation(.easeInOut(duration: 0.4)) {
+            self.recommendationSections = sections
+            self.isLoadingRecommendations = false
+        }
+    }
+    
+    // MARK: - Original HomeRecipeView Sections
+    
     private var timeBasedGreetingSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(timeBasedGreeting)
@@ -122,7 +252,6 @@ struct HomeRecipeView: View {
         .padding(.top, 12)
     }
     
-    // MARK: - Search and Filter Section
     private var searchAndFilterSection: some View {
         HStack(spacing: 12) {
             // Search field
@@ -166,7 +295,6 @@ struct HomeRecipeView: View {
         .padding(.horizontal, 20)
     }
     
-    // MARK: - Curated Recipes Section
     private var curatedRecipesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -197,6 +325,12 @@ struct HomeRecipeView: View {
                             CuratedRecipeCard(recipe: recipe)
                         }
                         .buttonStyle(.plain)
+                        .onTapGesture {
+                            // Track recipe view for recommendations
+                            if let recipeId = recipe.id {
+                                UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -204,7 +338,6 @@ struct HomeRecipeView: View {
         }
     }
     
-    // MARK: - Categories Section
     private var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -245,7 +378,6 @@ struct HomeRecipeView: View {
         }
     }
     
-    // MARK: - All Recipes Section
     private var allRecipesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("All Recipes")
@@ -262,13 +394,20 @@ struct HomeRecipeView: View {
                         ModernRecipeCard(recipe: recipe)
                     }
                     .buttonStyle(.plain)
+                    .onTapGesture {
+                        // Track recipe view for recommendations
+                        if let recipeId = recipe.id {
+                            UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                        }
+                    }
                 }
             }
             .padding(.horizontal, 20)
         }
     }
     
-    // MARK: - Computed Properties
+    // MARK: - Computed Properties (from original HomeRecipeView)
+    
     private var timeBasedGreeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -306,6 +445,7 @@ struct HomeRecipeView: View {
                 let name = recipe.name?.lowercased() ?? ""
                 return name.contains("tea") || name.contains("bread") ||
                        name.contains("porridge") || name.contains("pancake") ||
+                       name.contains("koko") || name.contains("bofrot") ||
                        recipe.prepTime + recipe.cookTime <= 20
             }.prefix(5).map { $0 }
         case 12...14:
@@ -354,7 +494,7 @@ struct HomeRecipeView: View {
     }
 }
 
-// MARK: - Supporting Views
+// MARK: - Supporting Views (unchanged from original)
 
 struct CuratedRecipeCard: View {
     let recipe: Recipe
@@ -399,75 +539,6 @@ struct CuratedRecipeCard: View {
             .padding(.top, 12)
         }
         .frame(width: 180)
-    }
-}
-
-struct ModernCategoryCard: View {
-    let category: Category
-    let isSelected: Bool
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            // Category icon
-            ZStack {
-                Circle()
-                    .fill(Color(hex: category.colorHex ?? "#767676").opacity(0.2))
-                    .frame(width: 40, height: 40)
-                
-                Image(systemName: categoryIcon(for: category.name ?? ""))
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(Color(hex: category.colorHex ?? "#767676"))
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(category.name ?? "Unknown")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
-                
-                Text("\(recipeCount(for: category)) recipes")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(isSelected ? Color.accentColor.opacity(0.1) : Color(.systemGray6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
-                )
-        )
-    }
-    
-    private func categoryIcon(for categoryName: String) -> String {
-        switch categoryName.lowercased() {
-        case "soups":
-            return "drop.circle"
-        case "stews":
-            return "flame"
-        case "rice dishes":
-            return "circle.grid.3x3"
-        case "street food":
-            return "cart"
-        case "breakfast":
-            return "sun.horizon"
-        case "desserts":
-            return "heart.circle"
-        case "drinks":
-            return "cup.and.saucer"
-        case "sides":
-            return "square.3.layers.3d"
-        default:
-            return "fork.knife"
-        }
-    }
-    
-    private func recipeCount(for category: Category) -> Int {
-        return category.recipes?.count ?? 0
     }
 }
 
@@ -587,66 +658,8 @@ struct HorizontalCategoryCard: View {
     }
 }
 
-// Recipe row component
-struct RecipeRowView: View {
-    let recipe: Recipe
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            // Recipe image or placeholder
-            if let imageName = recipe.imageName, !imageName.isEmpty {
-                AsyncImageView.asset(
-                    imageName,
-                    cornerRadius: Constants.UI.smallCornerRadius
-                )
-                .frame(width: 60, height: 60)
-            } else {
-                AsyncImageView.placeholder(
-                    color: Color.blue.opacity(0.3),
-                    text: recipe.name,
-                    cornerRadius: Constants.UI.smallCornerRadius
-                )
-                .frame(width: 60, height: 60)
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(recipe.name ?? "Unknown Recipe")
-                    .font(.headline)
-                
-                if let description = recipe.recipeDescription, !description.isEmpty {
-                    Text(description)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                }
-                
-                HStack(spacing: 12) {
-                    if recipe.prepTime > 0 || recipe.cookTime > 0 {
-                        Label("\(recipe.prepTime + recipe.cookTime) \(Constants.Text.recipeMinutesAbbreviation)", systemImage: Constants.Assets.clockIcon)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
-                        Text(difficulty)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-            
-            Spacer()
-            
-            if recipe.isFavorite {
-                Image(systemName: Constants.Assets.favoriteFilledIcon)
-                    .foregroundColor(.red)
-            }
-        }
-        .padding(.vertical, 4)
-    }
-}
+// MARK: - Favorites and About Views (unchanged)
 
-// Favorites View
 struct FavoritesView: View {
     @ObservedObject private var viewModel = DataManager.shared.favoriteViewModel
     
@@ -713,7 +726,6 @@ struct FavoritesView: View {
     }
 }
 
-// About View
 struct AboutView: View {
     var body: some View {
         ScrollView {
@@ -795,58 +807,66 @@ struct AboutView: View {
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-    }
-}
-
-struct RecipeCardView: View {
+struct RecipeRowView: View {
     let recipe: Recipe
-
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        HStack(spacing: 12) {
+            // Recipe image or placeholder
             if let imageName = recipe.imageName, !imageName.isEmpty {
-                AsyncImageView.asset(imageName, cornerRadius: 12)
-                    .frame(height: 180)
-                    .clipped()
+                AsyncImageView.asset(
+                    imageName,
+                    cornerRadius: Constants.UI.smallCornerRadius
+                )
+                .frame(width: 60, height: 60)
             } else {
                 AsyncImageView.placeholder(
                     color: Color.blue.opacity(0.3),
                     text: recipe.name,
-                    cornerRadius: 12
+                    cornerRadius: Constants.UI.smallCornerRadius
                 )
-                .frame(height: 180)
+                .frame(width: 60, height: 60)
             }
-
-            Text(recipe.name ?? "Unknown")
-                .font(.headline)
-
-            if let desc = recipe.recipeDescription, !desc.isEmpty {
-                Text(desc)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-            }
-
-            HStack {
-                if recipe.prepTime > 0 || recipe.cookTime > 0 {
-                    Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: Constants.Assets.clockIcon)
-                        .font(.caption)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(recipe.name ?? "Unknown Recipe")
+                    .font(.headline)
+                
+                if let description = recipe.recipeDescription, !description.isEmpty {
+                    Text(description)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
+                        .lineLimit(1)
                 }
-
-                Spacer()
-
-                if recipe.isFavorite {
-                    Image(systemName: Constants.Assets.favoriteFilledIcon)
-                        .foregroundColor(.red)
+                
+                HStack(spacing: 12) {
+                    if recipe.prepTime > 0 || recipe.cookTime > 0 {
+                        Label("\(recipe.prepTime + recipe.cookTime) \(Constants.Text.recipeMinutesAbbreviation)", systemImage: Constants.Assets.clockIcon)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
+                        Text(difficulty)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
+            }
+            
+            Spacer()
+            
+            if recipe.isFavorite {
+                Image(systemName: Constants.Assets.favoriteFilledIcon)
+                    .foregroundColor(.red)
             }
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        .padding(.vertical, 4)
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
     }
 }
