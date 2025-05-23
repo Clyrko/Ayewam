@@ -47,7 +47,7 @@ struct CategoryListView: View {
         LazyVGrid(columns: gridLayout, spacing: 16) {
             ForEach(viewModel.categories, id: \.self) { category in
                 NavigationLink(destination:
-                    HomeRecipeView(initialCategory: category)
+                    SmartHomeRecipeView(initialCategory: category)
                         .navigationTitle(category.name ?? "Recipes")
                 ) {
                     CategoryCard(

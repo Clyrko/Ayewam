@@ -153,11 +153,12 @@ struct SmartSuggestionCard: View {
             Text(recipe.name ?? "Unknown Recipe")
                 .font(.headline)
                 .fontWeight(.semibold)
-                .lineLimit(2)
+                .lineLimit(1)
+                .truncationMode(.tail)
                 .foregroundColor(.primary)
-                .multilineTextAlignment(.leading)
+                .frame(height: 22, alignment: .leading)
             
-            // Recipe details
+            // Recipe details - fixed height
             HStack(spacing: 8) {
                 if recipe.prepTime > 0 || recipe.cookTime > 0 {
                     Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
@@ -170,12 +171,17 @@ struct SmartSuggestionCard: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
+                
+                Spacer()
             }
+            .frame(height: 16)
             
-            // Suggestion reason (contextual)
+            // Suggestion reason
             suggestionReasonText
+                .frame(height: 14)
         }
         .padding(12)
+        .frame(height: 80)
     }
     
     private var suggestionReasonText: some View {
