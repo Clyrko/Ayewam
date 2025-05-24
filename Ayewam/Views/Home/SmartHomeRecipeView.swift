@@ -38,7 +38,7 @@ struct SmartHomeRecipeView: View {
             return "moon.stars.fill"
         }
     }
-
+    
     private var timeOfDayColor: Color {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -85,6 +85,28 @@ struct SmartHomeRecipeView: View {
             .padding(.top, 8)
         }
         .navigationBarHidden(true)
+        //TODO: justynx debugging delete
+#if DEBUG
+        .overlay(
+            VStack {
+                HStack {
+                    Spacer()
+                    Button("🔄") {
+                        let seeder = RecipeSeeder(context: viewContext)
+                        UserDefaults.standard.removeObject(forKey: "lastSeededVersion")
+                        seeder.seedDefaultRecipesIfNeeded()
+                        print("🌱 Debug: Re-seeded recipes")
+                    }
+                    .padding()
+                    .background(Color.red.opacity(0.7))
+                    .foregroundColor(.white)
+                    .clipShape(Circle())
+                }
+                .padding()
+                Spacer()
+            }
+        )
+#endif
         .background(
             // Dynamic gradient background
             LinearGradient(
@@ -99,8 +121,17 @@ struct SmartHomeRecipeView: View {
             .ignoresSafeArea()
         )
         .onAppear {
-            loadSmartRecommendations()
-        }
+                loadSmartRecommendations()
+                
+                // ADD THE DEBUG CODE HERE
+                #if DEBUG
+                let count = try? viewContext.count(for: Recipe.fetchRequest())
+                print("📊 Recipe count: \(count ?? 0)")
+                
+                let version = UserDefaults.standard.string(forKey: "lastSeededVersion") ?? "none"
+                print("📱 Last seeded version: \(version)")
+                #endif
+            }
         .refreshable {
             await refreshRecommendations()
         }
@@ -500,9 +531,9 @@ struct SmartHomeRecipeView: View {
             return allRecipes.filter { recipe in
                 let name = recipe.name?.lowercased() ?? ""
                 return name.contains("tea") || name.contains("bread") ||
-                       name.contains("porridge") || name.contains("pancake") ||
-                       name.contains("koko") || name.contains("bofrot") ||
-                       recipe.prepTime + recipe.cookTime <= 20
+                name.contains("porridge") || name.contains("pancake") ||
+                name.contains("koko") || name.contains("bofrot") ||
+                recipe.prepTime + recipe.cookTime <= 20
             }.prefix(5).map { $0 }
         case 12...14:
             return allRecipes.filter { recipe in
@@ -513,7 +544,7 @@ struct SmartHomeRecipeView: View {
             return allRecipes.filter { recipe in
                 let name = recipe.name?.lowercased() ?? ""
                 return name.contains("soup") || name.contains("stew") ||
-                       name.contains("rice") || name.contains("fufu")
+                name.contains("rice") || name.contains("fufu")
             }.prefix(5).map { $0 }
         default:
             return allRecipes.filter { recipe in

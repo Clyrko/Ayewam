@@ -35,31 +35,36 @@ struct PersistenceController {
                 fatalError("Failed to retrieve a persistent store description.")
             }
             
-            // Set the container identifier to match your app's CloudKit container
             description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
             description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
             
-            // Configure CloudKit container
             description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
                 containerIdentifier: "iCloud.ByteGenius.Ayewam"
             )
         }
         
+        let containerRef = container
+        
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
-                // For TestFlight/Production, you might want to handle this more gracefully
-                // than fatalError(), but for development this is fine
                 print("Core Data error: \(error), \(error.userInfo)")
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
+            
+            DispatchQueue.main.async {
+                containerRef.viewContext.automaticallyMergesChangesFromParent = true
+                containerRef.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+                containerRef.viewContext.shouldDeleteInaccessibleFaults = true
+                containerRef.viewContext.name = "ViewContext"
+                containerRef.viewContext.stalenessInterval = 0.0
+                
+                // Seed recipes
+                if !inMemory {
+                    let recipeSeeder = RecipeSeeder(context: containerRef.viewContext)
+                    recipeSeeder.seedDefaultRecipesIfNeeded()
+                }
+            }
         })
-        
-        setupContexts()
-        
-        if !inMemory {
-            let recipeSeeder = RecipeSeeder(context: container.viewContext)
-            recipeSeeder.seedDefaultRecipesIfNeeded()
-        }
     }
     
     // MARK: - Setup Methods

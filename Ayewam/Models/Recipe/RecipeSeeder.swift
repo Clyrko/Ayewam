@@ -16,19 +16,50 @@ class RecipeSeeder {
     }
     
     func seedDefaultRecipesIfNeeded() {
+        //TODO: justynx Increment this for each update
+        let currentVersion = "1.2"
+        let lastSeededVersion = UserDefaults.standard.string(forKey: "lastSeededVersion")
+        
         let count = try? context.count(for: Recipe.fetchRequest())
         
-        if count == 0 {
+        // Force reseed if version changed or no recipes exist
+        if lastSeededVersion != currentVersion || count == 0 {
+            print("justynx 🌱 Seeding recipes - Current: \(currentVersion), Last: \(lastSeededVersion ?? "none"), Count: \(count ?? 0)")
+            
+            // Clear existing recipes if version changed
+            if lastSeededVersion != currentVersion && count ?? 0 > 0 {
+                clearAllRecipes()
+            }
+            
             createCategories()
             createRecipes()
             
             do {
                 try context.save()
-                print("Successfully seeded default recipes")
+                UserDefaults.standard.set(currentVersion, forKey: "lastSeededVersion")
+                print("justynx ✅ Successfully seeded recipes for version \(currentVersion)")
             } catch {
-                print("Failed to seed recipes: \(error)")
+                print("justynx ❌ Failed to seed recipes: \(error)")
                 context.rollback()
             }
+        } else {
+            print("justynx ℹ️ Recipes already seeded - Version: \(currentVersion), Count: \(count ?? 0)")
+        }
+    }
+
+    // Clear existing recipes if version changed
+    private func clearAllRecipes() {
+        do {
+            let recipes = try context.fetch(Recipe.fetchRequest())
+            let categories = try context.fetch(Category.fetchRequest())
+            
+            recipes.forEach { context.delete($0) }
+            categories.forEach { context.delete($0) }
+            
+            try context.save()
+            print("justynx 🗑️ Cleared existing recipes and categories")
+        } catch {
+            print("justynx ❌ Error clearing recipes: \(error)")
         }
     }
     
