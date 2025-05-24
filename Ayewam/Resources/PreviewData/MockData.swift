@@ -24,13 +24,13 @@ struct MockData {
         let recipe = Recipe(context: context)
         recipe.id = "jollof_rice_preview"
         recipe.name = "Jollof Rice"
-        recipe.recipeDescription = "A one-pot rice dish popular throughout West Africa, with a distinct Ghanaian preparation style."
+        recipe.recipeDescription = "***A one-pot rice dish popular throughout West Africa, with a distinct Ghanaian preparation style."
         recipe.prepTime = 15
         recipe.cookTime = 45
         recipe.servings = 6
         recipe.difficulty = "Medium"
         recipe.region = "Nationwide"
-        recipe.imageName = "jollof_rice"
+        recipe.imageName = "jollofRice"
         recipe.isFavorite = true
         
         // Add a category

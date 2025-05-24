@@ -71,7 +71,7 @@ class RecipeSeeder {
             servings: 4,
             difficulty: "Medium",
             region: "Nationwide",
-            imageName: "light_soup",
+            imageName: "lightSoup",
             category: soups
         )
         
@@ -96,13 +96,13 @@ class RecipeSeeder {
         let jollofRice = createRecipe(
             id: "jollof_rice",
             name: "Jollof Rice",
-            description: "A one-pot rice dish popular throughout West Africa, with a distinct Ghanaian preparation style.",
+            description: "**A one-pot rice dish popular throughout West Africa, with a distinct Ghanaian preparation style.",
             prepTime: 15,
             cookTime: 45,
             servings: 6,
             difficulty: "Easy",
             region: "Nationwide",
-            imageName: "jollof_rice",
+            imageName: "jollofRice",
             category: riceDishes
         )
         
@@ -137,7 +137,7 @@ class RecipeSeeder {
             servings: 4,
             difficulty: "Easy",
             region: "Nationwide",
-            imageName: "red_red",
+            imageName: "redRed",
             category: fetchCategory(name: "Street Food")
         )
 
@@ -172,7 +172,7 @@ class RecipeSeeder {
             servings: 6,
             difficulty: "Medium",
             region: "Central/Western",
-            imageName: "palm_nut_soup",
+            imageName: "palmnutSoup",
             category: soups
         )
 
@@ -270,7 +270,7 @@ class RecipeSeeder {
             servings: 6,
             difficulty: "Medium",
             region: "Northern",
-            imageName: "groundnut_soup",
+            imageName: "groundnutSoup",
             category: soups
         )
 
@@ -341,7 +341,7 @@ class RecipeSeeder {
             servings: 4,
             difficulty: "Medium",
             region: "Ga/Ewe",
-            imageName: "banku_tilapia",
+            imageName: "bankuTilapia",
             category: fetchCategory(name: "Sides")
         )
 
@@ -378,7 +378,7 @@ class RecipeSeeder {
             servings: 8,
             difficulty: "Hard",
             region: "Nationwide",
-            imageName: "meat_pie",
+            imageName: "meatPie",
             category: fetchCategory(name: "Street Food")
         )
 
@@ -453,7 +453,7 @@ class RecipeSeeder {
             servings: 5,
             difficulty: "Medium",
             region: "Ashanti/Nationwide",
-            imageName: "kontomire_stew",
+            imageName: "kontomireStew",
             category: fetchCategory(name: "Stews")
         )
 
@@ -527,7 +527,7 @@ class RecipeSeeder {
             servings: 20,
             difficulty: "Easy",
             region: "Nationwide",
-            imageName: "chin_chin",
+            imageName: "chinChin",
             category: fetchCategory(name: "Desserts")
         )
 
@@ -563,7 +563,7 @@ class RecipeSeeder {
             servings: 6,
             difficulty: "Medium",
             region: "Nationwide",
-            imageName: "okro_stew",
+            imageName: "okraSoup",
             category: fetchCategory(name: "Stews")
         )
 
@@ -637,7 +637,7 @@ class RecipeSeeder {
             servings: 8,
             difficulty: "Easy",
             region: "Nationwide",
-            imageName: "ginger_beer",
+            imageName: "gingerBeer",
             category: fetchCategory(name: "Drinks")
         )
 
@@ -673,7 +673,7 @@ class RecipeSeeder {
             servings: 4,
             difficulty: "Medium",
             region: "Northern",
-            imageName: "tuo_zaafi",
+            imageName: "tuoZaafi",
             category: fetchCategory(name: "Sides")
         )
 
@@ -700,7 +700,7 @@ class RecipeSeeder {
             servings: 5,
             difficulty: "Easy",
             region: "Southern",
-            imageName: "garden_egg_stew",
+            imageName: "gardenEggStew",
             category: fetchCategory(name: "Stews")
         )
 
@@ -739,7 +739,7 @@ class RecipeSeeder {
             servings: 6,
             difficulty: "Easy",
             region: "Northern/Nationwide",
-            imageName: "hausa_koko",
+            imageName: "hausaKoko",
             category: fetchCategory(name: "Breakfast")
         )
 
@@ -826,46 +826,11 @@ class RecipeSeeder {
         createStep(instruction: "Cook for 8-10 minutes, stirring constantly until mixture is smooth and thick.", duration: 600, imageName: "konkonte_step4", orderIndex: 3, recipe: konkonte)
         createStep(instruction: "The consistency should be firm enough to shape but not too dry.", duration: 60, imageName: "konkonte_step5", orderIndex: 4, recipe: konkonte)
         createStep(instruction: "Using wet hands, shape into smooth balls and serve immediately with soup or stew.", duration: 300, imageName: "konkonte_step6", orderIndex: 5, recipe: konkonte)
-
-        // 23. Bissap (Drinks)
-        let bissap = createRecipe(
-            id: "bissap",
-            name: "Bissap (Hibiscus Iced Tea)",
-            description: "A refreshing cold hibiscus drink flavored with mint and citrus. Popular across West Africa and perfect for hot weather.",
-            prepTime: 10,
-            cookTime: 15,
-            servings: 6,
-            difficulty: "Easy",
-            region: "Nationwide",
-            imageName: "bissap",
-            category: fetchCategory(name: "Drinks")
-        )
-
-        // Add ingredients for Bissap
-        createIngredient(name: "Dried hibiscus petals", quantity: 1.5, unit: "cups", notes: nil, orderIndex: 0, recipe: bissap)
-        createIngredient(name: "Water", quantity: 6, unit: "cups", notes: nil, orderIndex: 1, recipe: bissap)
-        createIngredient(name: "Fresh mint leaves", quantity: 0.5, unit: "cup", notes: "Packed", orderIndex: 2, recipe: bissap)
-        createIngredient(name: "Fresh ginger", quantity: 1, unit: "thumb-sized", notes: "Sliced", orderIndex: 3, recipe: bissap)
-        createIngredient(name: "Limes", quantity: 2, unit: "medium", notes: "Juiced", orderIndex: 4, recipe: bissap)
-        createIngredient(name: "Lemon", quantity: 1, unit: "medium", notes: "Juiced", orderIndex: 5, recipe: bissap)
-        createIngredient(name: "Sugar", quantity: 0.5, unit: "cup", notes: "Or to taste", orderIndex: 6, recipe: bissap)
-        createIngredient(name: "Ice cubes", quantity: 2, unit: "cups", notes: "For serving", orderIndex: 7, recipe: bissap)
-        createIngredient(name: "Lime slices", quantity: 1, unit: "lime", notes: "For garnish", orderIndex: 8, recipe: bissap)
-
-        // Add steps for Bissap
-        createStep(instruction: "Rinse hibiscus petals in cold water until water runs clear.", duration: 180, imageName: "bissap_step1", orderIndex: 0, recipe: bissap)
-        createStep(instruction: "Boil water with sliced ginger for 5 minutes.", duration: 300, imageName: "bissap_step2", orderIndex: 1, recipe: bissap)
-        createStep(instruction: "Add hibiscus petals and mint leaves to the boiling water.", duration: 60, imageName: "bissap_step3", orderIndex: 2, recipe: bissap)
-        createStep(instruction: "Boil for 10 minutes, then remove from heat and let steep for 15 minutes.", duration: 900, imageName: "bissap_step4", orderIndex: 3, recipe: bissap)
-        createStep(instruction: "Strain the liquid, pressing the solids to extract maximum flavor. Discard solids.", duration: 300, imageName: "bissap_step5", orderIndex: 4, recipe: bissap)
-        createStep(instruction: "Stir in sugar while the liquid is still warm, then add lime and lemon juice.", duration: 180, imageName: "bissap_step6", orderIndex: 5, recipe: bissap)
-        createStep(instruction: "Let cool to room temperature, then refrigerate for at least 2 hours.", duration: 7200, imageName: "bissap_step7", orderIndex: 6, recipe: bissap)
-        createStep(instruction: "Serve over ice with lime slices and fresh mint for garnish.", duration: 120, imageName: "bissap_step8", orderIndex: 7, recipe: bissap)
         
         // 24. Ampesi (Sides)
         let ampesi = createRecipe(
             id: "ampesi",
-            name: "Ampesi (Boiled Vegetables)",
+            name: "Ampesi",
             description: "A simple, healthy dish of boiled plantains, yam, and cocoyam served with stew or soup. A classic Ghanaian comfort food.",
             prepTime: 15,
             cookTime: 30,
@@ -929,47 +894,6 @@ class RecipeSeeder {
         createStep(instruction: "Add ground shrimp and fish powder. Continue frying for 15 minutes, stirring frequently.", duration: 900, imageName: "shito_step6", orderIndex: 5, recipe: shito)
         createStep(instruction: "Add palm oil (if using), stock cubes, and salt. Fry for 10 more minutes.", duration: 600, imageName: "shito_step7", orderIndex: 6, recipe: shito)
         createStep(instruction: "Cool completely and store in sterilized jars. Keeps for months in refrigerator.", duration: 1800, imageName: "shito_step8", orderIndex: 7, recipe: shito)
-
-        // 26. Peanut Butter Soup (Soups)
-        let peanutButterSoup = createRecipe(
-            id: "peanut_butter_soup",
-            name: "Peanut Butter Soup (Nkate Nkwan)",
-            description: "A creamy, protein-rich soup made with peanut butter, vegetables, and meat. Similar to groundnut soup but using prepared peanut butter.",
-            prepTime: 20,
-            cookTime: 60,
-            servings: 6,
-            difficulty: "Easy",
-            region: "Nationwide",
-            imageName: "peanut_butter_soup",
-            category: soups
-        )
-
-        // Add ingredients for Peanut Butter Soup
-        createIngredient(name: "Natural peanut butter", quantity: 1, unit: "cup", notes: "Unsweetened", orderIndex: 0, recipe: peanutButterSoup)
-        createIngredient(name: "Chicken", quantity: 600, unit: "g", notes: "Cut into pieces", orderIndex: 1, recipe: peanutButterSoup)
-        createIngredient(name: "Beef", quantity: 300, unit: "g", notes: "Cut into chunks", orderIndex: 2, recipe: peanutButterSoup)
-        createIngredient(name: "Smoked fish", quantity: 100, unit: "g", notes: "Cleaned", orderIndex: 3, recipe: peanutButterSoup)
-        createIngredient(name: "Spinach", quantity: 2, unit: "bunches", notes: "Washed and chopped", orderIndex: 4, recipe: peanutButterSoup)
-        createIngredient(name: "Onions", quantity: 2, unit: "medium", notes: "Chopped", orderIndex: 5, recipe: peanutButterSoup)
-        createIngredient(name: "Tomatoes", quantity: 3, unit: "medium", notes: "Chopped", orderIndex: 6, recipe: peanutButterSoup)
-        createIngredient(name: "Tomato paste", quantity: 2, unit: "tablespoons", notes: nil, orderIndex: 7, recipe: peanutButterSoup)
-        createIngredient(name: "Palm oil", quantity: 3, unit: "tablespoons", notes: nil, orderIndex: 8, recipe: peanutButterSoup)
-        createIngredient(name: "Ginger", quantity: 1, unit: "thumb-sized", notes: "Grated", orderIndex: 9, recipe: peanutButterSoup)
-        createIngredient(name: "Garlic", quantity: 3, unit: "cloves", notes: "Minced", orderIndex: 10, recipe: peanutButterSoup)
-        createIngredient(name: "Scotch bonnet pepper", quantity: 1, unit: "small", notes: "To taste", orderIndex: 11, recipe: peanutButterSoup)
-        createIngredient(name: "Stock cubes", quantity: 2, unit: "", notes: nil, orderIndex: 12, recipe: peanutButterSoup)
-        createIngredient(name: "Salt", quantity: 1, unit: "to taste", notes: nil, orderIndex: 13, recipe: peanutButterSoup)
-
-        // Add steps for Peanut Butter Soup
-        createStep(instruction: "Season and boil chicken and beef with half the onion until tender, about 40 minutes.", duration: 2400, imageName: "peanut_soup_step1", orderIndex: 0, recipe: peanutButterSoup)
-        createStep(instruction: "Reserve 2 cups of meat stock and set aside.", duration: 120, imageName: "peanut_soup_step2", orderIndex: 1, recipe: peanutButterSoup)
-        createStep(instruction: "Heat palm oil in a large pot and sauté remaining onions until translucent.", duration: 300, imageName: "peanut_soup_step3", orderIndex: 2, recipe: peanutButterSoup)
-        createStep(instruction: "Add tomato paste, ginger, and garlic. Stir for 2 minutes until fragrant.", duration: 120, imageName: "peanut_soup_step4", orderIndex: 3, recipe: peanutButterSoup)
-        createStep(instruction: "Add chopped tomatoes and scotch bonnet pepper. Cook until tomatoes soften, 8 minutes.", duration: 480, imageName: "peanut_soup_step5", orderIndex: 4, recipe: peanutButterSoup)
-        createStep(instruction: "Mix peanut butter with the reserved warm stock until smooth and creamy.", duration: 300, imageName: "peanut_soup_step6", orderIndex: 5, recipe: peanutButterSoup)
-        createStep(instruction: "Add peanut butter mixture to the pot and bring to a gentle boil.", duration: 300, imageName: "peanut_soup_step7", orderIndex: 6, recipe: peanutButterSoup)
-        createStep(instruction: "Add cooked meat, smoked fish, and seasonings. Simmer for 15 minutes.", duration: 900, imageName: "peanut_soup_step8", orderIndex: 7, recipe: peanutButterSoup)
-        createStep(instruction: "Add chopped spinach and cook for 5 minutes until wilted. Serve with rice balls or fufu.", duration: 300, imageName: "peanut_soup_step9", orderIndex: 8, recipe: peanutButterSoup)
         
         // 27. Fried Rice (Rice Dishes)
         let friedRice = createRecipe(
@@ -981,7 +905,7 @@ class RecipeSeeder {
             servings: 6,
             difficulty: "Medium",
             region: "Nationwide",
-            imageName: "ghanaian_fried_rice",
+            imageName: "friedRice",
             category: riceDishes
         )
 
@@ -1057,7 +981,7 @@ class RecipeSeeder {
             servings: 16,
             difficulty: "Medium",
             region: "Central/Fante",
-            imageName: "fante_fante",
+            imageName: "coconutCandy",
             category: fetchCategory(name: "Desserts")
         )
 
@@ -1090,7 +1014,7 @@ class RecipeSeeder {
             servings: 12,
             difficulty: "Medium",
             region: "Nationwide",
-            imageName: "yam_balls",
+            imageName: "yamBalls",
             category: fetchCategory(name: "Street Food")
         )
 
