@@ -13,5 +13,7 @@
         <string>en</string>
         <string>ak</string>
     </array>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
 </dict>
 </plist>
