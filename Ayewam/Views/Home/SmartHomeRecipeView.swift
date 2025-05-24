@@ -25,6 +25,34 @@ struct SmartHomeRecipeView: View {
     @State private var recommendationSections: [RecommendationSection] = []
     @State private var isLoadingRecommendations = true
     
+    private var timeOfDayIcon: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5...11:
+            return "sun.horizon.fill"
+        case 12...17:
+            return "sun.max.fill"
+        case 18...20:
+            return "sunset.fill"
+        default:
+            return "moon.stars.fill"
+        }
+    }
+
+    private var timeOfDayColor: Color {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5...11:
+            return .orange
+        case 12...17:
+            return .yellow
+        case 18...20:
+            return .orange
+        default:
+            return .indigo
+        }
+    }
+    
     private var recommendationEngine: ContextualRecommendationEngine {
         ContextualRecommendationEngine(context: viewContext)
     }
@@ -78,7 +106,7 @@ struct SmartHomeRecipeView: View {
         }
     }
     
-    // MARK: - Modern Greeting Section
+    // MARK: - Greeting Section
     private var greetingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -101,23 +129,19 @@ struct SmartHomeRecipeView: View {
                 
                 Spacer()
                 
-                // Profile/Settings icon
-                Button(action: {
-                    // TODO: Profile action
-                }) {
-                    Circle()
-                        .fill(.ultraThinMaterial)
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            Image(systemName: "person.crop.circle.fill")
-                                .font(.system(size: 20))
-                                .foregroundColor(.secondary)
-                        )
-                        .overlay(
-                            Circle()
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                        )
-                }
+                // Time of day icon
+                Circle()
+                    .fill(.ultraThinMaterial)
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Image(systemName: timeOfDayIcon)
+                            .font(.system(size: 20))
+                            .foregroundColor(timeOfDayColor)
+                    )
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                    )
             }
         }
         .padding(.horizontal, 24)
@@ -406,6 +430,7 @@ struct SmartHomeRecipeView: View {
                 }
             }
             .padding(.horizontal, 24)
+            .padding(.bottom, 100)
         }
     }
     
