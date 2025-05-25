@@ -219,11 +219,11 @@ struct ModernCategoryCard: View {
             // Category icon
             Image(systemName: categoryIcon(for: category.name ?? ""))
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(isSelected ? .white : Color(hex: category.colorHex ?? "#767676"))
+                .foregroundColor(isSelected ? .white : categoryAssetColor(for: category.name ?? ""))
                 .frame(width: 32, height: 32)
                 .background(
                     Circle()
-                        .fill(isSelected ? Color(hex: category.colorHex ?? "#767676") : Color(hex: category.colorHex ?? "#767676").opacity(0.1))
+                        .fill(isSelected ? categoryAssetColor(for: category.name ?? "") : categoryAssetColor(for: category.name ?? "").opacity(0.1))
                 )
             
             Text(category.name ?? "Unknown")
@@ -235,14 +235,14 @@ struct ModernCategoryCard: View {
         .padding(.vertical, 14)
         .background(
             Capsule()
-                .fill(isSelected ? Color(hex: category.colorHex ?? "#767676") : Color(.systemGray6))
+                .fill(isSelected ? categoryAssetColor(for: category.name ?? "") : Color(.systemGray6))
                 .overlay(
                     Capsule()
-                        .stroke(isSelected ? Color.clear : Color.white.opacity(0.3), lineWidth: 1)
+                        .stroke(isSelected ? Color.clear : Color("GhanaGold").opacity(0.3), lineWidth: 1)
                 )
         )
         .shadow(
-            color: isSelected ? Color(hex: category.colorHex ?? "#767676").opacity(0.3) : Color.black.opacity(0.05),
+            color: isSelected ? categoryAssetColor(for: category.name ?? "").opacity(0.3) : Color.black.opacity(0.05),
             radius: isSelected ? 8 : 4,
             x: 0,
             y: isSelected ? 4 : 2
@@ -271,6 +271,29 @@ struct ModernCategoryCard: View {
             return "square.3.layers.3d.fill"
         default:
             return "fork.knife"
+        }
+    }
+    
+    private func categoryAssetColor(for categoryName: String) -> Color {
+        switch categoryName.lowercased() {
+        case "soups":
+            return Color("SoupTeal")
+        case "stews":
+            return Color("StewOrange")
+        case "rice dishes":
+            return Color("RiceGold")
+        case "street food":
+            return Color("StreetGreen")
+        case "breakfast":
+            return Color("BreakfastOrange")
+        case "desserts":
+            return Color("DessertPink")
+        case "drinks":
+            return Color("DrinkBlue")
+        case "sides":
+            return Color("SidesBrown")
+        default:
+            return Color("GhanaGold")
         }
     }
 }

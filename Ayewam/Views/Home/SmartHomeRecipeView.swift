@@ -43,13 +43,13 @@ struct SmartHomeRecipeView: View {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
         case 5...11:
-            return .orange
+            return Color("BreakfastOrange")
         case 12...17:
-            return .yellow
+            return Color("GhanaGold")
         case 18...20:
-            return .orange
+            return Color("WarmRed")
         default:
-            return .indigo
+            return Color("DrinkBlue")
         }
     }
     
@@ -108,12 +108,11 @@ struct SmartHomeRecipeView: View {
         )
 #endif
         .background(
-            // Dynamic gradient background
             LinearGradient(
                 colors: [
                     Color(.systemBackground),
-                    Color(.systemBackground).opacity(0.8),
-                    Color(.systemGray6).opacity(0.3)
+                    Color("SectionBackground").opacity(0.3),
+                    Color("CardBackground").opacity(0.1)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -171,7 +170,7 @@ struct SmartHomeRecipeView: View {
                     )
                     .overlay(
                         Circle()
-                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            .stroke(Color("GhanaGold").opacity(0.3), lineWidth: 1)
                     )
             }
         }
@@ -185,7 +184,7 @@ struct SmartHomeRecipeView: View {
             // Search field
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color("ForestGreen"))
                     .font(.system(size: 18, weight: .medium))
                 
                 TextField("Search recipes...", text: $searchText)
@@ -199,7 +198,7 @@ struct SmartHomeRecipeView: View {
                         }
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Color("WarmRed"))
                             .font(.system(size: 16))
                     }
                 }
@@ -210,7 +209,7 @@ struct SmartHomeRecipeView: View {
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    .stroke(Color("GhanaGold").opacity(0.2), lineWidth: 1)
             )
             
             // Filter button
@@ -281,11 +280,17 @@ struct SmartHomeRecipeView: View {
                         HStack(spacing: 8) {
                             Text("Smart Suggestions")
                                 .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.primary)
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Color("GhanaGold"), Color("KenteGold")],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
                             
                             Image(systemName: "sparkles")
                                 .font(.title3)
-                                .foregroundColor(.blue)
+                                .foregroundColor(Color("CookingProgress"))
                                 .symbolEffect(.bounce, value: recommendationSections.count)
                         }
                         
