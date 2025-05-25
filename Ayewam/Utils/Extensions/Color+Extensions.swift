@@ -32,18 +32,50 @@ extension Color {
         )
     }
     
-    // Theme colors for Ayewam app
-    static let primaryAccent = Color("primaryAccent")
-    static let secondaryAccent = Color("secondaryAccent")
+    // MARK: - Legacy Ghana Flag Colors (pointing to assets)
+    static let ghRed = Color("WarmRed")
+    static let ghYellow = Color("GhanaGold")
+    static let ghGreen = Color("ForestGreen")
     
-    // Ghanaian flag colors
-    static let ghRed = Color(hex: "#CE1126")
-    static let ghYellow = Color(hex: "#FCD116")
-    static let ghGreen = Color(hex: "#006B3F")
-    
-    // Semantic colors
+    // MARK: - Semantic Colors (hex-based - keep these)
     static let success = Color(hex: "#4CAF50")
     static let warning = Color(hex: "#FF9800")
     static let error = Color(hex: "#F44336")
     static let info = Color(hex: "#2196F3")
 }
+
+// MARK: - Asset Color Reference Guide
+/*
+ Available Asset Colors (use with Color("AssetName")):
+ 
+ PRIMARY GHANA COLORS:
+ - "GhanaGold"      - Ghana flag yellow
+ - "ForestGreen"    - Ghana flag green
+ - "WarmRed"        - Ghana flag red
+ - "KenteGold"      - Traditional kente gold
+ 
+ CATEGORY COLORS:
+ - "SoupTeal"       - Soups category
+ - "StewOrange"     - Stews category
+ - "RiceGold"       - Rice dishes category
+ - "StreetGreen"    - Street food category
+ - "BreakfastOrange" - Breakfast category
+ - "DessertPink"    - Desserts category
+ - "DrinkBlue"      - Drinks category
+ - "SidesBrown"     - Sides category
+ 
+ SEMANTIC COLORS:
+ - "TimerActive"    - Active cooking timers
+ - "StepComplete"   - Completed cooking steps
+ - "CookingProgress" - Cooking progress indicators
+ - "FavoriteHeart"  - Favorite recipe heart
+ 
+ SURFACE COLORS:
+ - "CardBackground" - Card backgrounds
+ - "SectionBackground" - Section backgrounds
+ 
+ USAGE EXAMPLES:
+ .foregroundColor(Color("GhanaGold"))
+ .background(Color("SoupTeal"))
+ .fill(Color("TimerActive"))
+ */
