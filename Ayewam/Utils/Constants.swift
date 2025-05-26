@@ -46,6 +46,14 @@ enum Constants {
         static let standardIconSize: CGFloat = 24
         static let largeIconSize: CGFloat = 32
         static let extraLargeIconSize: CGFloat = 60
+        
+        // Recipe Submission UI
+        static let submissionCardCornerRadius: CGFloat = 24
+        static let notificationCornerRadius: CGFloat = 20
+        static let toastDuration: Double = 4.0
+        static let submissionFormPadding: CGFloat = 20
+        static let characterLimit: Int = 500
+        static let dailySubmissionLimit: Int = 5
     }
     
     /// String literals and text used throughout the app - with localization support
@@ -118,6 +126,22 @@ enum Constants {
         static let genericErrorTitle = localized("genericErrorTitle", comment: "Generic error title")
         static let retryButtonLabel = localized("retryButtonLabel", comment: "Label for retry button")
         static let failedToLoadRecipes = localized("failedToLoadRecipes", comment: "Message when recipes fail to load")
+        
+        // Recipe Submission
+        static let suggestRecipe = localized("suggestRecipe", comment: "Button to suggest a recipe")
+        static let recipeSubmissionTitle = localized("recipeSubmissionTitle", comment: "Title for recipe submission form")
+        static let recipeSubmissionDescription = localized("recipeSubmissionDescription", comment: "Description for recipe submission feature")
+        static let recipeName = localized("recipeName", comment: "Label for recipe name field")
+        static let additionalDetails = localized("additionalDetails", comment: "Label for additional details field")
+        static let additionalDetailsPlaceholder = localized("additionalDetailsPlaceholder", comment: "Placeholder for additional details field")
+        static let submitSuggestion = localized("submitSuggestion", comment: "Button to submit recipe suggestion")
+        static let submissionSuccess = localized("submissionSuccess", comment: "Success message for recipe submission")
+        static let submissionSuccessMessage = localized("submissionSuccessMessage", comment: "Detailed success message for recipe submission")
+        static let didntFindRecipe = localized("didntFindRecipe", comment: "Message when recipe not found in search")
+        static let helpUsAddIt = localized("helpUsAddIt", comment: "Call to action to suggest missing recipe")
+        static let suggestThisRecipe = localized("suggestThisRecipe", comment: "Button to suggest a specific recipe")
+        static let dailyLimitReached = localized("dailyLimitReached", comment: "Message when daily submission limit reached")
+        static let submissionsRemaining = localized("submissionsRemaining", comment: "Text showing remaining submissions")
     }
     
     /// Enhanced localization helpers
@@ -170,6 +194,14 @@ enum Constants {
         
         // Default category colors (hex)
         static let defaultCategoryColor = "#767676"
+        
+        // Recipe Submission Icons
+        static let submissionIcon = "paperplane.fill"
+        static let approvedIcon = "checkmark.circle.fill"
+        static let pendingIcon = "clock.circle"
+        static let declinedIcon = "xmark.circle"
+        static let suggestIcon = "plus.circle.fill"
+        static let notificationIcon = "bell.fill"
     }
     
     /// CoreData related constants (no changes needed here)
@@ -192,7 +224,34 @@ enum Constants {
         // Debounce durations
         static let searchDebounce: Double = 0.3
         
-        // Loading simulation delays (for development)
         static let simulatedNetworkDelay: Double = 0.3
+        
+        // Recipe Submission Timing
+        static let toastDuration: Double = 4.0
+        static let notificationAnimationDuration: Double = 0.6
+        static let submissionTimeout: Double = 30.0
+        static let duplicateCheckDebounce: Double = 0.5
+    }
+    
+    enum RecipeSubmission {
+        static let dailySubmissionLimit = 5
+        static let characterLimit = 500
+        static let minimumNameLength = 2
+        static let maximumNameLength = 100
+        
+        // CloudKit
+        static let recordType = "RecipeSubmission"
+        static let publicDatabase = "public"
+        
+        // User defaults keys
+        static let submissionCountKey = "RecipeSubmissionCount"
+        static let lastSubmissionDateKey = "LastRecipeSubmissionDate"
+        static let lastResetDateKey = "LastSubmissionResetDate"
+        static let lastNotificationCheckKey = "LastNotificationCheckDate"
+        
+        // Notification types
+        static let recipeApprovalType = "recipe_approval"
+        static let appUpdateType = "app_update"
+        static let announcementType = "announcement"
     }
 }

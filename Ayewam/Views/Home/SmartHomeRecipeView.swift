@@ -24,6 +24,7 @@ struct SmartHomeRecipeView: View {
     @State private var searchText = ""
     @State private var recommendationSections: [RecommendationSection] = []
     @State private var isLoadingRecommendations = true
+    @State private var showingRecipeSubmission = false
     
     private var timeOfDayIcon: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -133,6 +134,10 @@ struct SmartHomeRecipeView: View {
             }
         .refreshable {
             await refreshRecommendations()
+        }
+        .toast(position: .top)
+        .sheet(isPresented: $showingRecipeSubmission) {
+            RecipeSubmissionView(prefilledRecipeName: searchText.trimmingCharacters(in: .whitespacesAndNewlines))
         }
     }
     
@@ -450,24 +455,142 @@ struct SmartHomeRecipeView: View {
             }
             .padding(.horizontal, 24)
             
-            LazyVStack(spacing: 20) {
-                ForEach(filteredRecipes, id: \.self) { recipe in
-                    NavigationLink {
-                        RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
-                    } label: {
-                        RecipeCard(recipe: recipe)
-                    }
-                    .buttonStyle(.plain)
-                    .onTapGesture {
-                        if let recipeId = recipe.id {
-                            UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+            if filteredRecipes.isEmpty {
+                emptyRecipeState
+            } else {
+                LazyVStack(spacing: 20) {
+                    ForEach(filteredRecipes, id: \.self) { recipe in
+                        NavigationLink {
+                            RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
+                        } label: {
+                            RecipeCard(recipe: recipe)
+                        }
+                        .buttonStyle(.plain)
+                        .onTapGesture {
+                            if let recipeId = recipe.id {
+                                UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                            }
                         }
                     }
                 }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 100)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 100)
         }
+    }
+    
+    // MARK: - Empty Recipe State
+    private var emptyRecipeState: some View {
+        VStack(spacing: 24) {
+            // Empty state icon and text
+            VStack(spacing: 16) {
+                Image(systemName: "text.book.closed")
+                    .font(.system(size: 50))
+                    .foregroundColor(.secondary)
+                
+                Text("No recipes found")
+                    .font(.headline)
+                
+                Text(emptyStateDescription)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+            
+            VStack(spacing: 16) {
+                // Recipe submission button (only show if searching)
+                if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    recipeSubmissionPrompt
+                }
+                
+                // Clear filters button (only show if filters are active)
+                if selectedCategory != nil || !searchText.isEmpty {
+                    Button("Clear Filters") {
+                        selectedCategory = nil
+                        searchText = ""
+                    }
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.blue)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(
+                        Capsule()
+                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                    )
+                }
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 40)
+        .frame(maxWidth: .infinity)
+    }
+    
+    // MARK: - Recipe Submission Prompt
+    private var recipeSubmissionPrompt: some View {
+        VStack(spacing: 16) {
+            VStack(spacing: 12) {
+                HStack(spacing: 12) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(Color("GhanaGold"))
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Didn't find \"\(searchText.trimmingCharacters(in: .whitespacesAndNewlines))\"?")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                            .lineLimit(2)
+                        
+                        Text("Help us add it to our collection!")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                
+                // Suggest recipe button
+                Button(action: {
+                    showingRecipeSubmission = true
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "paperplane.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                        
+                        Text("Suggest This Recipe")
+                            .font(.system(size: 15, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color("GhanaGold"), Color("KenteGold")],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .shadow(color: Color("GhanaGold").opacity(0.3), radius: 6, x: 0, y: 3)
+                    )
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .accessibilityLabel("Suggest recipe: \(searchText)")
+                .accessibilityHint("Opens form to suggest this recipe with the name pre-filled")
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color("GhanaGold").opacity(0.2), lineWidth: 1)
+                )
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
     
     // MARK: - Smart Recommendations Logic
@@ -577,6 +700,14 @@ struct SmartHomeRecipeView: View {
             }
             
             return categoryMatch && searchMatch
+        }
+    }
+    
+    private var emptyStateDescription: String {
+        if selectedCategory != nil || !searchText.isEmpty {
+            return "Try adjusting your filters or search terms"
+        } else {
+            return "Check back later for new recipes"
         }
     }
 }
