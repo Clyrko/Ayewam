@@ -268,7 +268,7 @@ struct ModernCategoryCard: View {
         case "drinks":
             return "cup.and.saucer.fill"
         case "sides":
-            return "square.3.layers.3d.fill"
+            return "square.stack.3d.down.right.fill"
         default:
             return "fork.knife"
         }

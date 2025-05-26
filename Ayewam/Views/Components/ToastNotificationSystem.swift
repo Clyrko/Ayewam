@@ -140,7 +140,6 @@ class ToastManager: ObservableObject {
     
     /// Show a toast message
     func show(_ toast: ToastMessage) {
-        // Cancel any existing hide task
         hideTask?.cancel()
         
         if isShowing {
@@ -157,7 +156,7 @@ class ToastManager: ObservableObject {
             
             guard !Task.isCancelled else { return }
             
-            await hideCurrentToast()
+            hideCurrentToast()
         }
     }
     
@@ -232,9 +231,7 @@ class ToastManager: ObservableObject {
     /// Hide the current toast
     func hide() {
         hideTask?.cancel()
-        Task {
-            await hideCurrentToast()
-        }
+        hideCurrentToast()
     }
     
     private func hideCurrentToast() {
@@ -242,10 +239,8 @@ class ToastManager: ObservableObject {
             isShowing = false
         }
         
-        // Clear the toast after animation completes
-        Task {
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-            currentToast = nil
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.currentToast = nil
         }
     }
 }

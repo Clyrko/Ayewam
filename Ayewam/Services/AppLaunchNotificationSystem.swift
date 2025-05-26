@@ -10,9 +10,8 @@ import SwiftUI
 import Combine
 
 // MARK: - App Launch Notification Model
-
 struct AppLaunchNotification: Identifiable, Codable {
-    let id = UUID()
+    let id: UUID
     let type: NotificationType
     let title: String
     let message: String
@@ -35,6 +34,7 @@ struct AppLaunchNotification: Identifiable, Codable {
     }
     
     init(
+        id: UUID = UUID(),
         type: NotificationType,
         title: String,
         message: String,
@@ -43,6 +43,7 @@ struct AppLaunchNotification: Identifiable, Codable {
         approvedRecipes: [ApprovedRecipeInfo] = [],
         appVersion: String = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     ) {
+        self.id = id
         self.type = type
         self.title = title
         self.message = message
@@ -55,13 +56,12 @@ struct AppLaunchNotification: Identifiable, Codable {
 }
 
 // MARK: - Approved Recipe Info
-
 struct ApprovedRecipeInfo: Identifiable, Codable {
     let id: String
     let name: String
     let submissionDate: Date
     let approvalDate: Date
-    let recipeId: String? // The actual recipe ID in the app
+    let recipeId: String?
     
     init(from submission: RecipeSubmission, recipeId: String? = nil) {
         self.id = submission.id
@@ -73,18 +73,13 @@ struct ApprovedRecipeInfo: Identifiable, Codable {
 }
 
 // MARK: - App Launch Notification Manager
-
 @MainActor
 class AppLaunchNotificationManager: ObservableObject {
-    
-    // MARK: - Published Properties
-    
+        
     @Published var pendingNotifications: [AppLaunchNotification] = []
     @Published var currentNotification: AppLaunchNotification?
     @Published var isShowingNotification = false
-    
-    // MARK: - Private Properties
-    
+        
     private let repository: RecipeSubmissionRepository
     private var cancellables = Set<AnyCancellable>()
     
@@ -95,20 +90,15 @@ class AppLaunchNotificationManager: ObservableObject {
         static let shownNotificationIDs = "ShownNotificationIDs"
         static let pendingNotifications = "PendingNotifications"
     }
-    
-    // MARK: - Initialization
-    
+
     init(repository: RecipeSubmissionRepository = RecipeSubmissionRepository()) {
         self.repository = repository
         setupNotificationChecking()
     }
-    
-    // MARK: - Singleton
-    
+
     static let shared = AppLaunchNotificationManager()
     
     // MARK: - Public Methods
-    
     /// Check for new notifications on app launch
     func checkForNotifications() async {
         print("🔔 Checking for app launch notifications...")
@@ -138,7 +128,6 @@ class AppLaunchNotificationManager: ObservableObject {
             isShowingNotification = true
         }
         
-        // Mark as shown
         markNotificationAsShown(notification.id)
     }
     
@@ -148,16 +137,13 @@ class AppLaunchNotificationManager: ObservableObject {
             isShowingNotification = false
         }
         
-        // Clear after animation
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.currentNotification = nil
             
-            // Show next notification if any
             self.showNextNotification()
         }
     }
     
-    /// Handle notification action
     func handleNotificationAction(_ notification: AppLaunchNotification) {
         guard let actionType = notification.actionType else {
             dismissCurrentNotification()
@@ -166,7 +152,7 @@ class AppLaunchNotificationManager: ObservableObject {
         
         switch actionType {
         case .viewRecipes:
-            // Navigate to recipes view - this would be handled by the parent view
+            // Navigate to recipes view
             NotificationCenter.default.post(
                 name: .navigateToRecipes,
                 object: notification.approvedRecipes
@@ -178,7 +164,7 @@ class AppLaunchNotificationManager: ObservableObject {
             }
             
         case .dismiss:
-            break // Just dismiss
+            break
         }
         
         dismissCurrentNotification()
@@ -190,7 +176,7 @@ class AppLaunchNotificationManager: ObservableObject {
         savePendingNotifications()
     }
     
-    /// Add a test notification (for development)
+    /// Test notification
     func addTestNotification() {
         // Create a mock submission first
         let mockSubmission = RecipeSubmission(
@@ -220,10 +206,8 @@ class AppLaunchNotificationManager: ObservableObject {
     // MARK: - Private Methods
     
     private func setupNotificationChecking() {
-        // Load persisted notifications
         loadPendingNotifications()
         
-        // Set up app lifecycle notifications
         NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
             .sink { [weak self] _ in
                 Task {

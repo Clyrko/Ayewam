@@ -341,7 +341,7 @@ extension SmartSuggestionCard {
     
     /// Enhanced tracking for suggestion interactions
     private func trackAdvancedSuggestionInteraction() {
-        guard let recipeId = recipe.id else { return }
+        guard recipe.id != nil else { return }
         
         // Track the specific suggestion interaction
         UserBehaviorTracker.shared.trackSuggestionInteracted(recipe, sectionType: sectionType)

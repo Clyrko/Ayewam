@@ -125,7 +125,7 @@ class UserBehaviorTracker: ObservableObject {
     
     /// Track when user favorites a recipe
     func trackRecipeFavorited(_ recipe: Recipe) {
-        guard let recipeId = recipe.id else { return }
+        guard recipe.id != nil else { return }
         
         // Track favorite patterns
         trackCategoryPreference(recipe.categoryName, weight: 1.5)
@@ -239,17 +239,17 @@ class UserBehaviorTracker: ObservableObject {
         let totalFavorited = fetchFavoriteRecipes().count
         let totalCompleted = userDefaults.completedRecipes.count
         
-        // Calculate variety in interactions
         let uniqueCategories = Set(userDefaults.exploredCategories).count
         let maxCategories = 8.0 // We have 8 categories
         
         let categoryExploration = Double(uniqueCategories) / maxCategories
         
-        // Balance between exploration and depth
         if totalViewed < 10 {
-            return 0.8 // High exploration for new users
+            return 0.8
         } else {
-            return max(0.2, min(0.8, categoryExploration))
+            let engagementFactor = Double(totalFavorited + totalCompleted) / max(1.0, Double(totalViewed))
+            let adjustedRate = categoryExploration * (1.0 + engagementFactor * 0.2)
+            return max(0.2, min(0.8, adjustedRate))
         }
     }
     

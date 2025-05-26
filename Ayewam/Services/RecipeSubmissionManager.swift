@@ -32,10 +32,10 @@ class RecipeSubmissionManager: ObservableObject {
 
     init(
         repository: RecipeSubmissionRepository = RecipeSubmissionRepository(),
-        toastManager: ToastManager = ToastManager.shared
+        toastManager: ToastManager? = nil
     ) {
         self.repository = repository
-        self.toastManager = toastManager
+        self.toastManager = toastManager ?? ToastManager.shared
         
         loadSubmissionState()
         checkDailyReset()
@@ -319,7 +319,7 @@ extension RecipeSubmissionManager {
 
 // MARK: - Integration with DataManager
 extension DataManager {
-    
+    @MainActor
     var recipeSubmissionManager: RecipeSubmissionManager {
         RecipeSubmissionManager.shared
     }
