@@ -9,7 +9,7 @@ import CoreData
 
 struct PersistenceController {
     static let shared = PersistenceController()
-
+    
     @MainActor
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
@@ -21,9 +21,9 @@ struct PersistenceController {
         
         return result
     }()
-
+    
     let container: NSPersistentCloudKitContainer
-
+    
     init(inMemory: Bool = false) {
         container = NSPersistentCloudKitContainer(name: "Ayewam")
         
@@ -38,9 +38,21 @@ struct PersistenceController {
             description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
             description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
             
+            let options = NSPersistentCloudKitContainerOptions(
+                containerIdentifier: "iCloud.ByteGenius.Ayewam"
+            )
+            
+            // Use development environment for initial schema creation
+#if DEBUG
+            // Disable CloudKit sync during development
+            description.cloudKitContainerOptions = nil
+#else
             description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
                 containerIdentifier: "iCloud.ByteGenius.Ayewam"
             )
+#endif
+            
+            description.cloudKitContainerOptions = options
         }
         
         let containerRef = container
