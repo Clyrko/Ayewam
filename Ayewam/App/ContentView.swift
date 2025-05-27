@@ -25,8 +25,14 @@ struct ContentView: View {
                 NavigationView { FavoritesView() }
                     .tag(2)
 
-                NavigationView { AboutView() }
-                    .tag(3)
+                //TODO: justynx dont forget to change
+                NavigationView {
+                    TipJarTestingView()
+                }
+                .tag(3)
+                
+//                NavigationView { AboutView() }
+//                    .tag(3)
             }
 
             // Tab Bar

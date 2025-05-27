@@ -1,10 +1,3 @@
-//
-//  AboutView.swift
-//  Ayewam
-//
-//  Created by Justyn Adusei-Prempeh on 5/24/25.
-//
-
 import SwiftUI
 
 struct AboutView: View {
@@ -22,6 +15,9 @@ struct AboutView: View {
                 
                 // Feature highlights
                 featureHighlights
+                
+                // Tip Jar Section
+                tipJarSection
                 
                 // Ghana flag section
                 ghanaFlagSection
@@ -135,6 +131,67 @@ struct AboutView: View {
                 icon: "globe.africa.fill",
                 gradientColors: [.green, .mint]
             )
+        }
+    }
+    
+    // MARK: - Tip Jar Section
+    private var tipJarSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Section header
+            HStack(spacing: 12) {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(Color("GhanaGold"))
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Support Our Mission")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Help preserve Ghanaian culinary traditions")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+            }
+            .padding(.bottom, 8)
+            
+            // Cultural introduction text
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Ayewam was born from a love of authentic Ghanaian cuisine and a desire to share our rich culinary heritage with the world.")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .lineSpacing(2)
+                
+                Text("Every traditional recipe tells a story—of family gatherings, cultural celebrations, and generations of culinary wisdom passed down through time.")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .lineSpacing(2)
+            }
+            .padding(.bottom, 16)
+            
+            TipJarView()
+            
+            // Community impact statement
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: "globe.africa.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(Color("ForestGreen"))
+                    
+                    Text("Community Impact")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.primary)
+                }
+                
+                Text("Your support helps us research new recipes, work with Ghanaian chefs and home cooks, and ensure that traditional cooking methods are accurately documented for future generations.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineSpacing(2)
+            }
+            .padding(.top, 16)
+            .padding(.horizontal, 4)
         }
     }
     
