@@ -54,6 +54,80 @@ struct SmartHomeRecipeView: View {
         }
     }
     
+    private var todaysHeroRecipe: Recipe? {
+        let hour = Calendar.current.component(.hour, from: Date())
+        let allRecipes = Array(recipes)
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+        
+        var filteredRecipes: [Recipe]
+        
+        switch hour {
+        case 5...11:
+            // Breakfast recipes
+            filteredRecipes = allRecipes.filter { recipe in
+                let name = recipe.name?.lowercased() ?? ""
+                return name.contains("tea") || name.contains("bread") ||
+                name.contains("porridge") || name.contains("pancake") ||
+                name.contains("koko") || name.contains("bofrot") ||
+                recipe.prepTime + recipe.cookTime <= 20
+            }
+        case 12...14:
+            // Lunch recipes
+            filteredRecipes = allRecipes.filter { recipe in
+                let totalTime = recipe.prepTime + recipe.cookTime
+                return totalTime > 20 && totalTime <= 45
+            }
+        case 17...21:
+            // Dinner recipes
+            filteredRecipes = allRecipes.filter { recipe in
+                let name = recipe.name?.lowercased() ?? ""
+                return name.contains("soup") || name.contains("stew") ||
+                name.contains("rice") || name.contains("fufu")
+            }
+        default:
+            // Quick bites
+            filteredRecipes = allRecipes.filter { recipe in
+                recipe.prepTime + recipe.cookTime <= 30
+            }
+        }
+        
+        // If no filtered recipes, use all recipes
+        if filteredRecipes.isEmpty {
+            filteredRecipes = allRecipes
+        }
+        
+        // Pick recipe based on day of year
+        guard !filteredRecipes.isEmpty else { return nil }
+        let index = (dayOfYear - 1) % filteredRecipes.count
+        return filteredRecipes[index]
+    }
+
+    private var heroRecipeSubtitle: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5...11:
+            return "Perfect for breakfast"
+        case 12...14:
+            return "Great for lunch"
+        case 17...21:
+            return "Tonight's dinner inspiration"
+        default:
+            return "Quick and easy option"
+        }
+    }
+
+    private var todayDayName: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: Date()).uppercased()
+    }
+
+    private var todayDayNumber: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter.string(from: Date())
+    }
+    
     private var recommendationEngine: ContextualRecommendationEngine {
         ContextualRecommendationEngine(context: viewContext)
     }
@@ -71,11 +145,11 @@ struct SmartHomeRecipeView: View {
                 // Search bar
                 searchSection
                 
-                // Smart recommendations section
-                smartRecommendationsSection
+                // Recipe of the Day Section
+                recipeOfTheDayHero
                 
-                // Curated recipes section
-                curatedSection
+                // Smart recommendations
+                smartRecommendationsSection
                 
                 // Categories section
                 CategoriesSection
@@ -87,7 +161,7 @@ struct SmartHomeRecipeView: View {
         }
         .navigationBarHidden(true)
         //TODO: justynx debugging delete
-#if DEBUG
+    #if DEBUG
         .overlay(
             VStack {
                 HStack {
@@ -107,7 +181,7 @@ struct SmartHomeRecipeView: View {
                 Spacer()
             }
         )
-#endif
+    #endif
         .background(
             LinearGradient(
                 colors: [
@@ -123,7 +197,6 @@ struct SmartHomeRecipeView: View {
         .onAppear {
                 loadSmartRecommendations()
                 
-                // ADD THE DEBUG CODE HERE
                 #if DEBUG
                 let count = try? viewContext.count(for: Recipe.fetchRequest())
                 print("📊 Recipe count: \(count ?? 0)")
@@ -138,6 +211,161 @@ struct SmartHomeRecipeView: View {
         .toast(position: .top)
         .sheet(isPresented: $showingRecipeSubmission) {
             RecipeSubmissionView(prefilledRecipeName: searchText.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+    }
+
+    // MARK: - Simple Recipe of the Day Hero
+    private var recipeOfTheDayHero: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Section header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Recipe of the Day")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text(heroRecipeSubtitle)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Day indicator
+                VStack {
+                    Text(todayDayName)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color("GhanaGold"))
+                    
+                    Text(todayDayNumber)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Color("GhanaGold"))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("GhanaGold").opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color("GhanaGold").opacity(0.3), lineWidth: 1)
+                        )
+                )
+            }
+            .padding(.horizontal, 24)
+            
+            // Hero recipe card
+            if let heroRecipe = todaysHeroRecipe {
+                NavigationLink {
+                    RecipeDetailView(recipe: heroRecipe, viewModel: DataManager.shared.recipeViewModel)
+                } label: {
+                    SimpleHeroCard(recipe: heroRecipe)
+                }
+                .buttonStyle(.plain)
+                .onTapGesture {
+                    if let recipeId = heroRecipe.id {
+                        UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                    }
+                }
+                .padding(.horizontal, 24)
+            } else {
+                VStack(spacing: 16) {
+                    Image(systemName: "fork.knife")
+                        .font(.system(size: 32))
+                        .foregroundColor(.secondary)
+                    
+                    Text("No recipe selected for today")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(height: 120)
+                .frame(maxWidth: .infinity)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .padding(.horizontal, 24)
+            }
+        }
+    }
+    
+    // MARK: - Simple Hero Card Component
+    struct SimpleHeroCard: View {
+        let recipe: Recipe
+        
+        var body: some View {
+            HStack(spacing: 16) {
+                // Recipe image
+                if let imageName = recipe.imageName, !imageName.isEmpty {
+                    AsyncImageView.asset(imageName, cornerRadius: 16)
+                        .frame(width: 80, height: 80)
+                        .clipped()
+                } else {
+                    AsyncImageView.placeholder(
+                        color: Color("GhanaGold").opacity(0.3),
+                        text: recipe.name,
+                        cornerRadius: 16
+                    )
+                    .frame(width: 80, height: 80)
+                }
+                
+                // Recipe info
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(recipe.name ?? "Unknown Recipe")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.primary)
+                        .lineLimit(2)
+                    
+                    if let description = recipe.recipeDescription, !description.isEmpty {
+                        Text(description)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                    }
+                    
+                    HStack(spacing: 16) {
+                        if recipe.prepTime > 0 || recipe.cookTime > 0 {
+                            HStack(spacing: 4) {
+                                Image(systemName: "clock.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.blue)
+                                
+                                Text("\(recipe.prepTime + recipe.cookTime) min")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        if let difficulty = recipe.difficulty, !difficulty.isEmpty {
+                            HStack(spacing: 4) {
+                                Image(systemName: "speedometer")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.orange)
+                                
+                                Text(difficulty)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        if recipe.isFavorite {
+                            Image(systemName: "heart.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(20)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color("GhanaGold").opacity(0.3), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 6)
         }
     }
     

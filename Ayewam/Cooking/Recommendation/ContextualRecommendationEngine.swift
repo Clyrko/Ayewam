@@ -394,11 +394,14 @@ extension UserDefaults {
     }
     
     func addRecentlyViewedRecipe(_ recipeId: String) {
-        var recent = recentlyViewedRecipes
-        // Remove if already exists (to move to front)
-        recent.removeAll { $0 == recipeId }
-        // Add to front
-        recent.insert(recipeId, at: 0)
-        recentlyViewedRecipes = recent
-    }
+            var recent = stringArray(forKey: "recentlyViewedRecipes") ?? []
+            // Remove if already exists
+            recent.removeAll { $0 == recipeId }
+            // Add to front
+            recent.insert(recipeId, at: 0)
+            // Keep only last 10
+            recent = Array(recent.prefix(10))
+            
+            set(recent, forKey: "recentlyViewedRecipes")
+        }
 }
