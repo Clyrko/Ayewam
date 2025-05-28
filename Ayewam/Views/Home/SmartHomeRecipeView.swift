@@ -22,8 +22,6 @@ struct SmartHomeRecipeView: View {
     
     @State private var selectedCategory: Category?
     @State private var searchText = ""
-    @State private var recommendationSections: [RecommendationSection] = []
-    @State private var isLoadingRecommendations = true
     @State private var showingRecipeSubmission = false
     
     private var timeOfDayIcon: String {
@@ -128,10 +126,6 @@ struct SmartHomeRecipeView: View {
         return formatter.string(from: Date())
     }
     
-    private var recommendationEngine: ContextualRecommendationEngine {
-        ContextualRecommendationEngine(context: viewContext)
-    }
-    
     init(initialCategory: Category? = nil) {
         self._selectedCategory = State(initialValue: initialCategory)
     }
@@ -195,7 +189,6 @@ struct SmartHomeRecipeView: View {
             .ignoresSafeArea()
         )
         .onAppear {
-                loadSmartRecommendations()
                 
                 #if DEBUG
                 let count = try? viewContext.count(for: Recipe.fetchRequest())
@@ -205,9 +198,6 @@ struct SmartHomeRecipeView: View {
                 print("📱 Last seeded version: \(version)")
                 #endif
             }
-        .refreshable {
-            await refreshRecommendations()
-        }
         .toast(position: .top)
         .sheet(isPresented: $showingRecipeSubmission) {
             RecipeSubmissionView(prefilledRecipeName: searchText.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -371,44 +361,46 @@ struct SmartHomeRecipeView: View {
     
     // MARK: - Greeting Section
     private var greetingSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(timeBasedGreeting)
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.primary, .primary.opacity(0.7)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(timeBasedGreeting)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.primary, Color("GhanaGold")],
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
-                    
-                    Text("What would you like to cook today?")
-                        .font(.title3)
-                        .fontWeight(.medium)
-                        .foregroundColor(.secondary)
-                }
+                    )
                 
-                Spacer()
-                
-                // Time of day icon
+                Text("Ready to cook?")
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            // Time of day icon
+            ZStack {
                 Circle()
                     .fill(.ultraThinMaterial)
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Image(systemName: timeOfDayIcon)
-                            .font(.system(size: 20))
-                            .foregroundColor(timeOfDayColor)
-                    )
+                    .frame(width: 50, height: 50)
                     .overlay(
                         Circle()
-                            .stroke(Color("GhanaGold").opacity(0.3), lineWidth: 1)
+                            .stroke(timeOfDayColor.opacity(0.3), lineWidth: 2)
                     )
+                    .shadow(color: timeOfDayColor.opacity(0.2), radius: 4, x: 0, y: 2)
+                
+                Image(systemName: timeOfDayIcon)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(timeOfDayColor)
+                    .symbolEffect(.variableColor.iterative, options: .repeat(.periodic(delay: 3.0)))
             }
         }
         .padding(.horizontal, 24)
-        .padding(.top, 20)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
     }
     
     // MARK: - Search Section
@@ -555,58 +547,6 @@ struct SmartHomeRecipeView: View {
     private var recommendationsSubtitle: String {
         let recentlyViewed = UserDefaults.standard.stringArray(forKey: "recentlyViewedRecipes") ?? []
         return recentlyViewed.isEmpty ? "Discover something new" : "Based on your cooking history"
-    }
-    
-    // MARK: - Curated Section
-    private var curatedSection: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(curatedSectionTitle)
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.primary)
-                    
-                    Text("Perfectly timed for you")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                Button(action: {
-                    // TODO: Show all curated recipes
-                }) {
-                    HStack(spacing: 4) {
-                        Text("See All")
-                            .font(.system(size: 14, weight: .semibold))
-                        
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    .foregroundColor(.accentColor)
-                }
-            }
-            .padding(.horizontal, 24)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 20) {
-                    ForEach(curatedRecipes, id: \.self) { recipe in
-                        NavigationLink {
-                            RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
-                        } label: {
-                            CuratedCard(recipe: recipe)
-                        }
-                        .buttonStyle(.plain)
-                        .onTapGesture {
-                            if let recipeId = recipe.id {
-                                UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 24)
-            }
-        }
     }
     
     // MARK: - Categories Section
@@ -815,36 +755,6 @@ struct SmartHomeRecipeView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
     
-    // MARK: - Smart Recommendations Logic
-    private func loadSmartRecommendations() {
-        isLoadingRecommendations = true
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            let sections = recommendationEngine.getRecommendations()
-            
-            withAnimation(.easeInOut(duration: 0.4)) {
-                self.recommendationSections = sections
-                self.isLoadingRecommendations = false
-            }
-        }
-    }
-    
-    @MainActor
-    private func refreshRecommendations() async {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            isLoadingRecommendations = true
-        }
-        
-        try? await Task.sleep(nanoseconds: 400_000_000)
-        
-        let sections = recommendationEngine.getRecommendations()
-        
-        withAnimation(.easeInOut(duration: 0.4)) {
-            self.recommendationSections = sections
-            self.isLoadingRecommendations = false
-        }
-    }
-    
     // MARK: - Computed Properties
     private var timeBasedGreeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -855,51 +765,6 @@ struct SmartHomeRecipeView: View {
             return "Good Afternoon"
         default:
             return "Good Evening"
-        }
-    }
-    
-    private var curatedSectionTitle: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        switch hour {
-        case 5...11:
-            return "Breakfast Favorites"
-        case 12...14:
-            return "Lunch Specials"
-        case 17...21:
-            return "Dinner Classics"
-        default:
-            return "Quick Bites"
-        }
-    }
-    
-    private var curatedRecipes: [Recipe] {
-        let hour = Calendar.current.component(.hour, from: Date())
-        let allRecipes = Array(recipes)
-        
-        switch hour {
-        case 5...11:
-            return allRecipes.filter { recipe in
-                let name = recipe.name?.lowercased() ?? ""
-                return name.contains("tea") || name.contains("bread") ||
-                name.contains("porridge") || name.contains("pancake") ||
-                name.contains("koko") || name.contains("bofrot") ||
-                recipe.prepTime + recipe.cookTime <= 20
-            }.prefix(5).map { $0 }
-        case 12...14:
-            return allRecipes.filter { recipe in
-                let totalTime = recipe.prepTime + recipe.cookTime
-                return totalTime > 20 && totalTime <= 45
-            }.prefix(5).map { $0 }
-        case 17...21:
-            return allRecipes.filter { recipe in
-                let name = recipe.name?.lowercased() ?? ""
-                return name.contains("soup") || name.contains("stew") ||
-                name.contains("rice") || name.contains("fufu")
-            }.prefix(5).map { $0 }
-        default:
-            return allRecipes.filter { recipe in
-                recipe.prepTime + recipe.cookTime <= 30
-            }.prefix(5).map { $0 }
         }
     }
     
