@@ -132,24 +132,29 @@ struct SmartHomeRecipeView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 32) {
+            VStack(alignment: .leading, spacing: 0) {
                 // Time-based greeting
                 greetingSection
                 
                 // Search bar
                 searchSection
+                    .padding(.top, 16)
                 
                 // Recipe of the Day Section
                 recipeOfTheDayHero
+                    .padding(.top, 32)
                 
                 // Smart recommendations
                 smartRecommendationsSection
+                    .padding(.top, 28)
                 
                 // Categories section
                 CategoriesSection
+                    .padding(.top, 24)
                 
                 // All recipes section
                 allRecipesSection
+                    .padding(.top, 20)
             }
             .padding(.top, 8)
         }
@@ -189,15 +194,14 @@ struct SmartHomeRecipeView: View {
             .ignoresSafeArea()
         )
         .onAppear {
-                
-                #if DEBUG
-                let count = try? viewContext.count(for: Recipe.fetchRequest())
-                print("📊 Recipe count: \(count ?? 0)")
-                
-                let version = UserDefaults.standard.string(forKey: "lastSeededVersion") ?? "none"
-                print("📱 Last seeded version: \(version)")
-                #endif
-            }
+            #if DEBUG
+            let count = try? viewContext.count(for: Recipe.fetchRequest())
+            print("📊 Recipe count: \(count ?? 0)")
+            
+            let version = UserDefaults.standard.string(forKey: "lastSeededVersion") ?? "none"
+            print("📱 Last seeded version: \(version)")
+            #endif
+        }
         .toast(position: .top)
         .sheet(isPresented: $showingRecipeSubmission) {
             RecipeSubmissionView(prefilledRecipeName: searchText.trimmingCharacters(in: .whitespacesAndNewlines))
