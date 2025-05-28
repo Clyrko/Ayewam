@@ -468,99 +468,93 @@ struct SmartHomeRecipeView: View {
     
     // MARK: - Smart Recommendations Section
     private var smartRecommendationsSection: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            if isLoadingRecommendations {
-                // Loading state
-                VStack(alignment: .leading, spacing: 20) {
-                    HStack {
-                        Text("Smart Suggestions")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.primary)
-                        
-                        Image(systemName: "sparkles")
-                            .font(.title3)
-                            .foregroundColor(.blue)
-                            .symbolEffect(.variableColor.iterative)
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, 24)
+        VStack(alignment: .leading, spacing: 20) {
+            // Section header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Recommended for You")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.primary)
                     
-                    RecommendationLoadingView()
+                    Text(recommendationsSubtitle)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
-            } else if recommendationSections.isEmpty {
-                VStack(alignment: .leading, spacing: 20) {
-                    HStack {
-                        Text("Smart Suggestions")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.primary)
-                        
-                        Image(systemName: "sparkles")
-                            .font(.title3)
-                            .foregroundColor(.blue)
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, 24)
-                    
-                    RecommendationEmptyView()
-                }
-            } else {
-                // Recommendations section
-                VStack(alignment: .leading, spacing: 28) {
-                    // Section header
-                    HStack {
-                        HStack(spacing: 8) {
-                            Text("Smart Suggestions")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [Color("GhanaGold"), Color("KenteGold")],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                            
-                            Image(systemName: "sparkles")
-                                .font(.title3)
-                                .foregroundColor(Color("CookingProgress"))
-                                .symbolEffect(.bounce, value: recommendationSections.count)
-                        }
-                        
-                        Spacer()
-                        
-                        // Refresh button
-                        Button(action: {
-                            Task { await refreshRecommendations() }
-                        }) {
-                            Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.secondary)
-                                .frame(width: 32, height: 32)
-                                .background(
+                
+                Spacer()
+                
+                // Refresh button
+                Button(action: {
+                    //TODO: justynx Simple refresh - just reload the view for now
+                }) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .frame(width: 32, height: 32)
+                        .background(
+                            Circle()
+                                .fill(.ultraThinMaterial)
+                                .overlay(
                                     Circle()
-                                        .fill(.ultraThinMaterial)
-                                        .overlay(
-                                            Circle()
-                                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                                        )
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                 )
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                    
-                    // Recommendation sections
-                    ForEach(recommendationSections.indices, id: \.self) { index in
-                        RecommendationSectionView(section: recommendationSections[index])
-                            .transition(.asymmetric(
-                                insertion: .move(edge: .trailing).combined(with: .opacity),
-                                removal: .move(edge: .leading).combined(with: .opacity)
-                            ))
-                            .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(Double(index) * 0.1), value: recommendationSections.count)
-                    }
+                        )
                 }
             }
+            .padding(.horizontal, 24)
+            
+            // Horizontal scroll of recommendations
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(personalizedRecommendations, id: \.self) { recipe in
+                        NavigationLink {
+                            RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
+                        } label: {
+                            CuratedCard(recipe: recipe)
+                        }
+                        .buttonStyle(.plain)
+                        .onTapGesture {
+                            if let recipeId = recipe.id {
+                                UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
         }
+    }
+
+    private var personalizedRecommendations: [Recipe] {
+        let recentlyViewed = UserDefaults.standard.stringArray(forKey: "recentlyViewedRecipes") ?? []
+        let allRecipes = Array(recipes)
+        
+        if recentlyViewed.isEmpty {
+            return Array(allRecipes.shuffled().prefix(5))
+        }
+        
+        let recentRecipes = recentlyViewed.compactMap { id in
+            allRecipes.first { $0.id == id }
+        }
+        
+        let recentCategories = Set(recentRecipes.flatMap { $0.categoryArray })
+        
+        let behaviorBasedRecipes = allRecipes.filter { recipe in
+            !recentlyViewed.contains(recipe.id ?? "") &&
+            !Set(recipe.categoryArray).intersection(recentCategories).isEmpty
+        }
+        
+        if behaviorBasedRecipes.isEmpty {
+            let randomRecipes = allRecipes.filter { !recentlyViewed.contains($0.id ?? "") }
+            return Array(randomRecipes.shuffled().prefix(5))
+        }
+        
+        return Array(behaviorBasedRecipes.shuffled().prefix(5))
+    }
+
+    private var recommendationsSubtitle: String {
+        let recentlyViewed = UserDefaults.standard.stringArray(forKey: "recentlyViewedRecipes") ?? []
+        return recentlyViewed.isEmpty ? "Discover something new" : "Based on your cooking history"
     }
     
     // MARK: - Curated Section
