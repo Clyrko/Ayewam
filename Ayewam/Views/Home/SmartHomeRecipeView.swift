@@ -23,6 +23,7 @@ struct SmartHomeRecipeView: View {
     @State private var selectedCategory: Category?
     @State private var searchText = ""
     @State private var showingRecipeSubmission = false
+    @State private var stableRecommendations: [Recipe] = []
     
     private var timeOfDayIcon: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -126,8 +127,11 @@ struct SmartHomeRecipeView: View {
         return formatter.string(from: Date())
     }
     
-    init(initialCategory: Category? = nil) {
-        self._selectedCategory = State(initialValue: initialCategory)
+    private var isSearching: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    init() {
     }
     
     var body: some View {
@@ -140,21 +144,32 @@ struct SmartHomeRecipeView: View {
                 searchSection
                     .padding(.top, 16)
                 
-                // Recipe of the Day Section
-                recipeOfTheDayHero
-                    .padding(.top, 32)
-                
-                // Smart recommendations
-                smartRecommendationsSection
-                    .padding(.top, 28)
-                
-                // Categories section
-                CategoriesSection
-                    .padding(.top, 24)
-                
-                // All recipes section
-                allRecipesSection
-                    .padding(.top, 20)
+                if isSearching {
+                    // SEARCH MODE: Only show search results
+                    searchResultsSection
+                        .padding(.top, 24)
+                } else {
+                    // BROWSE MODE: Show all sections
+                    Group {
+                        // Recipe of the Day Section
+                        if selectedCategory == nil {
+                            recipeOfTheDayHero
+                                .padding(.top, 32)
+                            
+                            // Smart recommendations
+                            smartRecommendationsSection
+                                .padding(.top, 28)
+                        }
+                        
+                        // Categories section
+                        CategoriesSection
+                            .padding(.top, selectedCategory == nil ? 24 : 20)
+                        
+                        // All recipes section
+                        filteredRecipesSection
+                            .padding(.top, 16)
+                    }
+                }
             }
             .padding(.top, 8)
         }
@@ -483,6 +498,108 @@ struct SmartHomeRecipeView: View {
         .padding(.horizontal, 24)
     }
     
+    private var searchResultsSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // Search results header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Search Results")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Found \(searchResults.count) recipe\(searchResults.count == 1 ? "" : "s") for \"\(searchText.trimmingCharacters(in: .whitespacesAndNewlines))\"")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Clear search button
+                Button(action: {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        searchText = ""
+                    }
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 12, weight: .medium))
+                        Text("Clear")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                    )
+                }
+            }
+            .padding(.horizontal, 24)
+            
+            // Search results or empty state
+            if searchResults.isEmpty {
+                searchEmptyState
+            } else {
+                LazyVStack(spacing: 16) {
+                    ForEach(searchResults, id: \.self) { recipe in
+                        NavigationLink {
+                            RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
+                        } label: {
+                            RecipeCard(recipe: recipe)
+                        }
+                        .buttonStyle(.plain)
+                        .onTapGesture {
+                            if let recipeId = recipe.id {
+                                UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 100)
+            }
+        }
+    }
+
+    private var searchResults: [Recipe] {
+        let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedSearch.isEmpty else { return [] }
+        
+        return recipes.filter { recipe in
+            let nameMatch = recipe.name?.localizedCaseInsensitiveContains(trimmedSearch) ?? false
+            let descMatch = recipe.recipeDescription?.localizedCaseInsensitiveContains(trimmedSearch) ?? false
+            return nameMatch || descMatch
+        }
+    }
+
+    // Search Empty State
+    private var searchEmptyState: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 16) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 40))
+                    .foregroundColor(.secondary)
+                
+                Text("No recipes found")
+                    .font(.headline)
+                
+                Text("Try a different search term or check the spelling")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            
+            recipeSubmissionPrompt
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 40)
+    }
+    
     // MARK: - Smart Recommendations Section
     private var smartRecommendationsSection: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -502,7 +619,7 @@ struct SmartHomeRecipeView: View {
                 
                 // Refresh button
                 Button(action: {
-                    //TODO: justynx Simple refresh - just reload the view for now
+                    refreshRecommendations()
                 }) {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 16, weight: .medium))
@@ -523,7 +640,7 @@ struct SmartHomeRecipeView: View {
             // Horizontal scroll of recommendations
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(personalizedRecommendations, id: \.self) { recipe in
+                    ForEach(stableRecommendations, id: \.self) { recipe in
                         NavigationLink {
                             RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
                         } label: {
@@ -540,14 +657,36 @@ struct SmartHomeRecipeView: View {
                 .padding(.horizontal, 24)
             }
         }
+        .onAppear {
+            if stableRecommendations.isEmpty {
+                loadRecommendations()
+            }
+        }
+    }
+    
+    private func loadRecommendations() {
+        stableRecommendations = generatePersonalizedRecommendations()
     }
 
-    private var personalizedRecommendations: [Recipe] {
+    private func refreshRecommendations() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            stableRecommendations = generatePersonalizedRecommendations()
+        }
+    }
+
+    private func generatePersonalizedRecommendations() -> [Recipe] {
         let recentlyViewed = UserDefaults.standard.stringArray(forKey: "recentlyViewedRecipes") ?? []
         let allRecipes = Array(recipes)
         
         if recentlyViewed.isEmpty {
-            return Array(allRecipes.shuffled().prefix(5))
+            let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+            var generator = SystemRandomNumberGenerator()
+            
+            let shuffledRecipes = allRecipes.shuffled(using: &generator)
+            let startIndex = (dayOfYear * 3) % max(1, allRecipes.count - 5)
+            let endIndex = min(startIndex + 5, allRecipes.count)
+            
+            return Array(shuffledRecipes[startIndex..<endIndex])
         }
         
         let recentRecipes = recentlyViewed.compactMap { id in
@@ -563,10 +702,10 @@ struct SmartHomeRecipeView: View {
         
         if behaviorBasedRecipes.isEmpty {
             let randomRecipes = allRecipes.filter { !recentlyViewed.contains($0.id ?? "") }
-            return Array(randomRecipes.shuffled().prefix(5))
+            return Array(randomRecipes.prefix(5))
         }
         
-        return Array(behaviorBasedRecipes.shuffled().prefix(5))
+        return Array(behaviorBasedRecipes.prefix(5))
     }
 
     private var recommendationsSubtitle: String {
@@ -579,28 +718,42 @@ struct SmartHomeRecipeView: View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Browse by Category")
+                    Text(selectedCategory == nil ? "Browse by Category" : "Categories")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.primary)
                     
-                    Text("Explore Ghanaian cuisine")
+                    Text(categorySubtitle)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
-                Button(action: {
-                    // TODO: Show all categories
-                }) {
-                    HStack(spacing: 4) {
-                        Text("See All")
-                            .font(.system(size: 14, weight: .semibold))
-                        
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 12, weight: .semibold))
+                // Clear filter button
+                if selectedCategory != nil {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            selectedCategory = nil
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 12, weight: .medium))
+                            Text("Clear")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                )
+                        )
                     }
-                    .foregroundColor(.accentColor)
                 }
             }
             .padding(.horizontal, 24)
@@ -626,26 +779,48 @@ struct SmartHomeRecipeView: View {
         }
     }
     
-    // MARK: - All Recipes Section
-    private var allRecipesSection: some View {
+    private var filteredRecipesSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
-                Text("All Recipes")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.primary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(recipeSectionTitle)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    if let selectedCategory = selectedCategory {
+                        Text("Showing \(filteredRecipes.count) \(selectedCategory.name?.lowercased() ?? "recipe")\(filteredRecipes.count == 1 ? "" : "s")")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text("\(recipes.count) traditional recipes")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
                 
                 Spacer()
                 
-                Text("\(filteredRecipes.count) recipes")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                // Recipe count badge
+                Text("\(filteredRecipes.count)")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(selectedCategory == nil ? .secondary : categoryColor)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(selectedCategory == nil ? Color(.systemGray5) : categoryColor.opacity(0.15))
+                            .overlay(
+                                Capsule()
+                                    .stroke(selectedCategory == nil ? Color.clear : categoryColor.opacity(0.3), lineWidth: 1)
+                            )
+                    )
             }
             .padding(.horizontal, 24)
             
             if filteredRecipes.isEmpty {
-                emptyRecipeState
+                categoryEmptyState
             } else {
-                LazyVStack(spacing: 20) {
+                LazyVStack(spacing: 16) {
                     ForEach(filteredRecipes, id: \.self) { recipe in
                         NavigationLink {
                             RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
@@ -665,52 +840,132 @@ struct SmartHomeRecipeView: View {
             }
         }
     }
-    
-    // MARK: - Empty Recipe State
-    private var emptyRecipeState: some View {
-        VStack(spacing: 24) {
-            // Empty state icon and text
-            VStack(spacing: 16) {
-                Image(systemName: "text.book.closed")
-                    .font(.system(size: 50))
-                    .foregroundColor(.secondary)
-                
-                Text("No recipes found")
-                    .font(.headline)
-                
-                Text(emptyStateDescription)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
-            
-            VStack(spacing: 16) {
-                // Recipe submission button (only show if searching)
-                if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    recipeSubmissionPrompt
-                }
-                
-                // Clear filters button (only show if filters are active)
-                if selectedCategory != nil || !searchText.isEmpty {
-                    Button("Clear Filters") {
-                        selectedCategory = nil
-                        searchText = ""
-                    }
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.blue)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(
-                        Capsule()
-                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                    )
-                }
+
+    private var filteredRecipes: [Recipe] {
+        if let selectedCategory = selectedCategory {
+            return recipes.filter { recipe in
+                recipe.categoryArray.contains(selectedCategory)
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 40)
+        return Array(recipes)
+    }
+
+    private var recipeSectionTitle: String {
+        if let selectedCategory = selectedCategory {
+            return selectedCategory.name ?? "Recipes"
+        }
+        return "All Recipes"
+    }
+
+    private var categorySubtitle: String {
+        if selectedCategory != nil {
+            return "Tap to filter recipes"
+        }
+        return "Explore Ghanaian cuisine"
+    }
+
+    private var categoryColor: Color {
+        guard let selectedCategory = selectedCategory else { return Color("GhanaGold") }
+        
+        switch selectedCategory.name?.lowercased() {
+        case "soups":
+            return Color("SoupTeal")
+        case "stews":
+            return Color("StewOrange")
+        case "rice dishes":
+            return Color("RiceGold")
+        case "street food":
+            return Color("StreetGreen")
+        case "breakfast":
+            return Color("BreakfastOrange")
+        case "desserts":
+            return Color("DessertPink")
+        case "drinks":
+            return Color("DrinkBlue")
+        case "sides":
+            return Color("SidesBrown")
+        default:
+            return Color("GhanaGold")
+        }
+    }
+
+    private var categoryEmptyState: some View {
+        VStack(spacing: 20) {
+            Image(systemName: getCategoryIcon(selectedCategory?.name))
+                .font(.system(size: 40))
+                .foregroundColor(categoryColor.opacity(0.6))
+            
+            Text("No \(selectedCategory?.name?.lowercased() ?? "recipes") yet")
+                .font(.headline)
+                .foregroundColor(.primary)
+            
+            Text("Check back soon for traditional Ghanaian \(selectedCategory?.name?.lowercased() ?? "recipes")!")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 60)
+        .padding(.horizontal, 24)
+    }
+
+    private func getCategoryIcon(_ categoryName: String?) -> String {
+        switch categoryName?.lowercased() {
+        case "soups":
+            return "drop.circle.fill"
+        case "stews":
+            return "flame.fill"
+        case "rice dishes":
+            return "circle.grid.3x3.fill"
+        case "street food":
+            return "cart.fill"
+        case "breakfast":
+            return "sun.horizon.fill"
+        case "desserts":
+            return "heart.circle.fill"
+        case "drinks":
+            return "cup.and.saucer.fill"
+        case "sides":
+            return "square.stack.3d.down.right.fill"
+        default:
+            return "fork.knife"
+        }
+    }
+
+    // MARK: - All Recipes Section
+    private var allRecipesSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                Text("All Recipes")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Text("\(recipes.count) recipes")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 24)
+            
+            LazyVStack(spacing: 16) {
+                ForEach(recipes, id: \.self) { recipe in
+                    NavigationLink {
+                        RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
+                    } label: {
+                        RecipeCard(recipe: recipe)
+                    }
+                    .buttonStyle(.plain)
+                    .onTapGesture {
+                        if let recipeId = recipe.id {
+                            UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 100)
+        }
     }
     
     // MARK: - Recipe Submission Prompt
@@ -790,36 +1045,6 @@ struct SmartHomeRecipeView: View {
             return "Good Afternoon"
         default:
             return "Good Evening"
-        }
-    }
-    
-    private var filteredRecipes: [Recipe] {
-        recipes.filter { recipe in
-            let categoryMatch: Bool
-            if let selectedCategory = selectedCategory {
-                categoryMatch = recipe.categoryArray.contains(selectedCategory)
-            } else {
-                categoryMatch = true
-            }
-            
-            let searchMatch: Bool
-            if searchText.isEmpty {
-                searchMatch = true
-            } else {
-                let nameMatch = recipe.name?.localizedCaseInsensitiveContains(searchText) ?? false
-                let descMatch = recipe.recipeDescription?.localizedCaseInsensitiveContains(searchText) ?? false
-                searchMatch = nameMatch || descMatch
-            }
-            
-            return categoryMatch && searchMatch
-        }
-    }
-    
-    private var emptyStateDescription: String {
-        if selectedCategory != nil || !searchText.isEmpty {
-            return "Try adjusting your filters or search terms"
-        } else {
-            return "Check back later for new recipes"
         }
     }
 }

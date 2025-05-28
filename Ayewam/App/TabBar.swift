@@ -12,7 +12,7 @@ struct TabBar: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(0..<4) { index in
+            ForEach(0..<3) { index in
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         selectedTab = index
@@ -51,9 +51,8 @@ struct TabBar: View {
     private func tabIcon(for index: Int) -> String {
         switch index {
         case 0: return "book.closed.fill"
-        case 1: return "square.grid.2x2.fill"
-        case 2: return "heart.fill"
-        case 3: return "info.circle.fill"
+        case 1: return "heart.fill"
+        case 2: return "ellipsis.circle.fill"
         default: return "questionmark"
         }
     }
@@ -61,9 +60,8 @@ struct TabBar: View {
     private func tabTitle(for index: Int) -> String {
         switch index {
         case 0: return "Recipes"
-        case 1: return "Categories"
-        case 2: return "Favorites"
-        case 3: return "About"
+        case 1: return "Favorites"
+        case 2: return "More"
         default: return ""
         }
     }

@@ -19,20 +19,17 @@ struct ContentView: View {
                 }
                 .tag(0)
 
-                NavigationView { CategoryListView() }
-                    .tag(1)
-
                 NavigationView { FavoritesView() }
-                    .tag(2)
+                    .tag(1)
 
                 //TODO: justynx dont forget to change
                 NavigationView {
                     TipJarTestingView()
                 }
-                .tag(3)
+                .tag(2)
                 
 //                NavigationView { AboutView() }
-//                    .tag(3)
+//                    .tag(2)
             }
 
             // Tab Bar
@@ -44,26 +41,23 @@ struct ContentView: View {
     func tabIcon(for index: Int) -> String {
         switch index {
         case 0: return "book.closed.fill"
-        case 1: return "square.grid.2x2.fill"
-        case 2: return "heart.fill"
-        case 3: return "info.circle.fill"
+        case 1: return "heart.fill"
+        case 2: return "ellipsis.circle.fill"
         default: return "questionmark"
         }
     }
-    
+
     func tabTitle(for index: Int) -> String {
         switch index {
         case 0: return "Recipes"
-        case 1: return "Categories"
-        case 2: return "Favorites"
-        case 3: return "About"
+        case 1: return "Favorites"
+        case 2: return "More"
         default: return ""
         }
     }
 }
 
-// MARK: - Favorites and About Views (Enhanced)
-
+// MARK: - Favorites and About Views
 struct ModernFeatureCard: View {
     let title: String
     let description: String
