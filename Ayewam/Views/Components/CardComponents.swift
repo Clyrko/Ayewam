@@ -109,103 +109,195 @@ struct CuratedCard: View {
 // MARK: - Recipe Card
 struct RecipeCard: View {
     let recipe: Recipe
+    @State private var isPressed = false
     
     var body: some View {
-        HStack(spacing: 16) {
-            // Recipe image
-            ZStack {
+        HStack(spacing: 0) {
+            // Recipe image section
+            ZStack(alignment: .topTrailing) {
                 if let imageName = recipe.imageName, !imageName.isEmpty {
-                    AsyncImageView.asset(imageName, cornerRadius: 16)
-                        .frame(width: 90, height: 90)
+                    AsyncImageView.asset(imageName)
+                        .frame(width: 100, height: 100)
                         .clipped()
                 } else {
                     AsyncImageView.placeholder(
-                        color: Color.accentColor.opacity(0.3),
-                        text: recipe.name,
-                        cornerRadius: 16
+                        color: Color("GhanaGold").opacity(0.3),
+                        text: recipe.name
                     )
-                    .frame(width: 90, height: 90)
+                    .frame(width: 100, height: 100)
                 }
                 
-                // Favorite heart overlay
+                // Favorite heart
                 if recipe.isFavorite {
-                    VStack {
-                        HStack {
-                            Spacer()
-                            
-                            Image(systemName: "heart.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(.white)
-                                .padding(6)
-                                .background(
-                                    Circle()
-                                        .fill(.red)
-                                        .shadow(color: .black.opacity(0.2), radius: 2)
-                                )
+                    ZStack {
+                        // Glow effect
+                        Circle()
+                            .fill(.red.opacity(0.3))
+                            .frame(width: 28, height: 28)
+                            .blur(radius: 4)
+                        
+                        // Heart icon
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 24, height: 24)
+                            .background(
+                                Circle()
+                                    .fill(.red)
+                                    .shadow(color: .red.opacity(0.4), radius: 2, x: 0, y: 1)
+                            )
+                    }
+                    .offset(x: -8, y: 8)
+                }
+            }
+            .cornerRadius(16, corners: [.topLeft, .bottomLeft])
+            
+            // Recipe info section
+            VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 4) {
+                    // Recipe name
+                    Text(recipe.name ?? "Unknown Recipe")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.primary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                    
+                    // Description
+                    if let description = recipe.recipeDescription, !description.isEmpty {
+                        Text(description)
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 12) {
+                        if recipe.prepTime > 0 || recipe.cookTime > 0 {
+                            MetadataChip(
+                                icon: "clock.fill",
+                                text: "\(recipe.prepTime + recipe.cookTime) min",
+                                color: .blue
+                            )
+                        }
+                        
+                        if let difficulty = recipe.difficulty, !difficulty.isEmpty {
+                            MetadataChip(
+                                icon: "speedometer",
+                                text: difficulty,
+                                color: .orange
+                            )
                         }
                         
                         Spacer()
                     }
-                    .padding(8)
+                    
+                    HStack(spacing: 12) {
+                        if recipe.servings > 0 {
+                            HStack(spacing: 3) {
+                                Image(systemName: "person.2")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                                
+                                Text("\(recipe.servings)")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        if !recipe.categoryName.isEmpty && recipe.categoryName != "Uncategorized" {
+                            HStack(spacing: 3) {
+                                Circle()
+                                    .fill(Color(hex: recipe.categoryColorHex))
+                                    .frame(width: 6, height: 6)
+                                
+                                Text(recipe.categoryName)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                        
+                        Spacer()
+                    }
                 }
             }
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text(recipe.name ?? "Unknown Recipe")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-                
-                if let description = recipe.recipeDescription, !description.isEmpty {
-                    Text(description)
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                }
-                
-                HStack(spacing: 12) {
-                    if recipe.prepTime > 0 || recipe.cookTime > 0 {
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(.blue)
-                            
-                            Text("\(recipe.prepTime + recipe.cookTime) min")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
-                        HStack(spacing: 4) {
-                            Image(systemName: "speedometer")
-                                .font(.system(size: 12))
-                                .foregroundColor(.orange)
-                            
-                            Text(difficulty)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                }
-            }
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color(UIColor.tertiaryLabel))
+            .padding(.vertical, 12)
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(20)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(
+        .frame(minHeight: 100)
+        .background(
             RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.3),
+                                    Color.white.opacity(0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
         )
-        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+        .shadow(
+            color: isPressed ? Color.black.opacity(0.15) : Color.black.opacity(0.08),
+            radius: isPressed ? 8 : 12,
+            x: 0,
+            y: isPressed ? 3 : 6
+        )
+        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: isPressed)
+        .onTapGesture {
+            // Haptic feedback
+            let impact = UIImpactFeedbackGenerator(style: .light)
+            impact.impactOccurred()
+        }
+        .pressEvents {
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isPressed = true
+            }
+        } onRelease: {
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isPressed = false
+            }
+        }
+    }
+}
+
+// MARK: - Metadata Chip Component
+struct MetadataChip: View {
+    let icon: String
+    let text: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(color)
+            
+            Text(text)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.primary)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            Capsule()
+                .fill(color.opacity(0.1))
+                .overlay(
+                    Capsule()
+                        .stroke(color.opacity(0.3), lineWidth: 0.5)
+                )
+        )
     }
 }
 
