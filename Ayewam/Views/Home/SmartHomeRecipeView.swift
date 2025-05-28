@@ -460,15 +460,6 @@ struct SmartHomeRecipeView: View {
             )
             .scaleEffect(isPressed ? 0.98 : 1.0)
             .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isPressed)
-            .pressEvents {
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    isPressed = true
-                }
-            } onRelease: {
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    isPressed = false
-                }
-            }
         }
     }
     
