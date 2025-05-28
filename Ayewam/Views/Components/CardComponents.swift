@@ -110,6 +110,8 @@ struct CuratedCard: View {
 struct RecipeCard: View {
     let recipe: Recipe
     @State private var isPressed = false
+    @State private var favoriteScale: CGFloat = 1.0
+    @State private var showShimmer = false
     
     var body: some View {
         HStack(spacing: 0) {
@@ -125,16 +127,18 @@ struct RecipeCard: View {
                         text: recipe.name
                     )
                     .frame(width: 100, height: 100)
+                    .overlay(shimmerOverlay)
                 }
                 
                 // Favorite heart
                 if recipe.isFavorite {
                     ZStack {
-                        // Glow effect
+                        // Animated glow effect
                         Circle()
                             .fill(.red.opacity(0.3))
-                            .frame(width: 28, height: 28)
-                            .blur(radius: 4)
+                            .frame(width: 32, height: 32)
+                            .blur(radius: 6)
+                            .scaleEffect(favoriteScale)
                         
                         // Heart icon
                         Image(systemName: "heart.fill")
@@ -146,8 +150,14 @@ struct RecipeCard: View {
                                     .fill(.red)
                                     .shadow(color: .red.opacity(0.4), radius: 2, x: 0, y: 1)
                             )
+                            .scaleEffect(favoriteScale)
                     }
                     .offset(x: -8, y: 8)
+                    .onAppear {
+                        withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                            favoriteScale = 1.1
+                        }
+                    }
                 }
             }
             .cornerRadius(16, corners: [.topLeft, .bottomLeft])
@@ -229,35 +239,22 @@ struct RecipeCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(minHeight: 100)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.3),
-                                    Color.white.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-        )
+        .background(cardBackground)
         .shadow(
             color: isPressed ? Color.black.opacity(0.15) : Color.black.opacity(0.08),
             radius: isPressed ? 8 : 12,
             x: 0,
             y: isPressed ? 3 : 6
         )
-        .scaleEffect(isPressed ? 0.98 : 1.0)
-        .animation(.easeInOut(duration: 0.15), value: isPressed)
+        .scaleEffect(isPressed ? 0.97 : 1.0)
+        .rotation3DEffect(
+            .degrees(isPressed ? 2 : 0),
+            axis: (x: 0.1, y: 0.1, z: 0)
+        )
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isPressed)
         .onTapGesture {
             // Haptic feedback
-            let impact = UIImpactFeedbackGenerator(style: .light)
+            let impact = UIImpactFeedbackGenerator(style: .medium)
             impact.impactOccurred()
         }
         .pressEvents {
@@ -265,8 +262,69 @@ struct RecipeCard: View {
                 isPressed = true
             }
         } onRelease: {
-            withAnimation(.easeInOut(duration: 0.1)) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 isPressed = false
+            }
+        }
+        .onAppear {
+            // Subtle shimmer
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0...1)) {
+                withAnimation(.easeInOut(duration: 2.0)) {
+                    showShimmer = true
+                }
+            }
+        }
+    }
+    
+    // Card background with subtle gradient
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 20)
+            .fill(.ultraThinMaterial)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(
+                        LinearGradient(
+                            colors: isPressed ?
+                            [Color("GhanaGold").opacity(0.05), Color.clear] :
+                                [Color.white.opacity(0.1), Color.clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.3),
+                                Color.white.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+    }
+    
+    // Shimmer effect for placeholder images
+    private var shimmerOverlay: some View {
+        Group {
+            if showShimmer {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.clear,
+                                Color.white.opacity(0.4),
+                                Color.clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: false), value: showShimmer)
             }
         }
     }
