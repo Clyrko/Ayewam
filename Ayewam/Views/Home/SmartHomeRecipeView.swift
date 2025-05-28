@@ -204,7 +204,7 @@ struct SmartHomeRecipeView: View {
         }
     }
 
-    // MARK: - Simple Recipe of the Day Hero
+    // MARK: - Recipe of the Day Hero
     private var recipeOfTheDayHero: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Section header
@@ -277,7 +277,7 @@ struct SmartHomeRecipeView: View {
         }
     }
     
-    // MARK: - Simple Hero Card Component
+    // MARK: - Hero Card Component
     struct SimpleHeroCard: View {
         let recipe: Recipe
         
@@ -405,55 +405,76 @@ struct SmartHomeRecipeView: View {
     
     // MARK: - Search Section
     private var searchSection: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 12) {
             // Search field
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(Color("ForestGreen"))
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(searchText.isEmpty ? .secondary : Color("GhanaGold"))
+                    .animation(.easeInOut(duration: 0.2), value: searchText.isEmpty)
                 
                 TextField("Search recipes...", text: $searchText)
                     .textFieldStyle(PlainTextFieldStyle())
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 16))
+                    .submitLabel(.search)
                 
                 if !searchText.isEmpty {
                     Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             searchText = ""
                         }
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(Color("WarmRed"))
                             .font(.system(size: 16))
+                            .foregroundColor(.secondary)
                     }
+                    .transition(.scale.combined(with: .opacity))
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color("GhanaGold").opacity(0.2), lineWidth: 1)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                searchText.isEmpty ?
+                                    Color.gray.opacity(0.2) :
+                                    Color("GhanaGold").opacity(0.4),
+                                lineWidth: 1.5
+                            )
+                            .animation(.easeInOut(duration: 0.2), value: searchText.isEmpty)
+                    )
             )
+            .shadow(
+                color: searchText.isEmpty ?
+                    Color.black.opacity(0.05) :
+                    Color("GhanaGold").opacity(0.1),
+                radius: searchText.isEmpty ? 2 : 4,
+                x: 0,
+                y: searchText.isEmpty ? 1 : 2
+            )
+            .animation(.easeInOut(duration: 0.2), value: searchText.isEmpty)
             
             // Filter button
             Button(action: {
-                // TODO: Implement filter functionality
+                // TODO: justynx Implement filter functionality
             }) {
                 Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.primary)
-                    .frame(width: 52, height: 52)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(.ultraThinMaterial)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                            )
-                    )
             }
+            .frame(width: 48, height: 48)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+            )
+            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         }
         .padding(.horizontal, 24)
     }
