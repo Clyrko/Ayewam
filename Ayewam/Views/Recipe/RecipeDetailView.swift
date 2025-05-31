@@ -13,40 +13,80 @@ struct RecipeDetailView: View {
     @ObservedObject var viewModel: RecipeViewModel
     @State private var activeTab = 0
     @State private var showCookingMode = false
+    @State private var scrollOffset: CGFloat = 0
+    @State private var showHeaderBackground = false
+    @State private var favoriteScale: CGFloat = 1.0
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                // Recipe Image or Placeholder
-                ZStack(alignment: .bottom) {
-                    // Image placeholder or actual image
-                    recipeHeaderView
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Recipe Header
+                    enhancedRecipeHeaderView
+                        .background(
+                            GeometryReader { headerGeometry in
+                                Color.clear.preference(
+                                    key: ScrollOffsetPreferenceKey.self,
+                                    value: headerGeometry.frame(in: .named("scroll")).minY
+                                )
+                            }
+                        )
                     
-                    // Recipe title panel overlapping the image
-                    recipeTitlePanel
-                }
-                
-                // Recipe info tabs
-                VStack(alignment: .leading, spacing: 20) {
-                    // Tab selector
-                    tabSelector
+                    // Recipe title panel
+                    enhancedRecipeTitlePanel
                     
-                    // Tab content
-                    tabContent
+                    // Enhanced Recipe info tabs
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Enhanced tab selector
+                        enhancedTabSelector
+                        
+                        // Enhanced tab content
+                        enhancedTabContent
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 100)
                 }
-                .padding()
+            }
+            .coordinateSpace(name: "scroll")
+            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                scrollOffset = value
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showHeaderBackground = value < -50
+                }
             }
         }
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                if showHeaderBackground {
+                    Text(recipe.name ?? "Recipe")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .lineLimit(1)
+                        .transition(.opacity)
+                }
+            }
+            
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { toggleFavorite() }) {
+                Button(action: {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                        toggleFavorite()
+                        favoriteScale = 1.3
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            favoriteScale = 1.0
+                        }
+                    }
+                }) {
                     Image(systemName: recipe.isFavorite ? "heart.fill" : "heart")
-                        .foregroundColor(recipe.isFavorite ? .red : .gray)
+                        .foregroundColor(recipe.isFavorite ? Color("FavoriteHeart") : .gray)
+                        .font(.system(size: 18, weight: .semibold))
+                        .scaleEffect(favoriteScale)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: favoriteScale)
                 }
             }
         }
+        .toolbarBackground(showHeaderBackground ? .visible : .hidden, for: .navigationBar)
         .fullScreenCover(isPresented: $showCookingMode) {
             NavigationView {
                 CookingView(viewModel: CookingViewModel(recipe: recipe))
@@ -54,302 +94,412 @@ struct RecipeDetailView: View {
         }
     }
     
-    // MARK: - Recipe Header
-    private var recipeHeaderView: some View {
-        if let imageName = recipe.imageName, !imageName.isEmpty {
-            return AsyncImageView.asset(
-                imageName,
-                contentMode: .fill
-            )
-            .frame(height: 250)
-        } else {
-            var placeholderColor = Color.gray.opacity(0.3)
-            
-            if let colorHex = recipe.categoryObject?.colorHex, !colorHex.isEmpty {
-                placeholderColor = Color(hex: colorHex)
+    // MARK: - Enhanced Recipe Header
+    private var enhancedRecipeHeaderView: some View {
+        ZStack(alignment: .bottomLeading) {
+            if let imageName = recipe.imageName, !imageName.isEmpty {
+                AsyncImageView.asset(
+                    imageName,
+                    contentMode: .fill
+                )
+                .frame(height: 200)
+                .clipped()
+                .overlay(
+                    // Enhanced gradient overlay
+                    LinearGradient(
+                        colors: [
+                            Color.clear,
+                            Color.black.opacity(0.3),
+                            Color.black.opacity(0.7)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            } else {
+                let placeholderColor = recipe.categoryObject?.colorHex != nil ?
+                    Color(hex: recipe.categoryObject!.colorHex!) :
+                    Color("GhanaGold").opacity(0.3)
+                
+                AsyncImageView.placeholder(
+                    color: placeholderColor,
+                    text: recipe.name
+                )
+                .frame(height: 300)
+                .overlay(
+                    LinearGradient(
+                        colors: [
+                            Color.clear,
+                            placeholderColor.opacity(0.3),
+                            placeholderColor.opacity(0.7)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
             }
             
-            return AsyncImageView.placeholder(
-                color: placeholderColor,
-                text: recipe.name
-            )
-            .frame(height: 250)
+            // Category and difficulty badges overlay
+            VStack {
+                HStack {
+                    if let category = recipe.categoryObject, let categoryName = category.name {
+                        CategoryBadge(
+                            name: categoryName,
+                            color: Color(hex: category.colorHex ?? "#767676")
+                        )
+                    }
+                    
+                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
+                        DifficultyBadge(difficulty: difficulty)
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 100)
+                
+                Spacer()
+            }
         }
     }
     
-    // MARK: - Recipe Title Panel
-    private var recipeTitlePanel: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Recipe Name
+    // MARK: - Enhanced Recipe Title Panel
+    private var enhancedRecipeTitlePanel: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Recipe Name with enhanced typography
             Text(recipe.name ?? "Unknown Recipe")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
+                .font(.system(size: 28, weight: .black, design: .rounded))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.primary, Color("GhanaGold")],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .lineLimit(3)
             
-            // Recipe metadata
-            HStack(spacing: 16) {
-                // Cook time
-                Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
-                    .font(.subheadline)
-                
-                // Difficulty
-                if let difficulty = recipe.difficulty, !difficulty.isEmpty {
-                    Label(difficulty, systemImage: "speedometer")
-                        .font(.subheadline)
+            // Quick stats with enhanced design
+            HStack(spacing: 20) {
+                if recipe.prepTime > 0 || recipe.cookTime > 0 {
+                    QuickStatCard(
+                        icon: "clock.fill",
+                        value: "\(recipe.prepTime + recipe.cookTime)",
+                        unit: "min",
+                        color: .blue
+                    )
                 }
                 
-                // Servings
                 if recipe.servings > 0 {
-                    Label("\(recipe.servings) serving\(recipe.servings > 1 ? "s" : "")", systemImage: "person.2")
-                        .font(.subheadline)
+                    QuickStatCard(
+                        icon: "person.2.fill",
+                        value: "\(recipe.servings)",
+                        unit: recipe.servings == 1 ? "serving" : "servings",
+                        color: .green
+                    )
                 }
-            }
-            .foregroundColor(.secondary)
-            
-            // Region
-            if let region = recipe.region, !region.isEmpty {
-                Label("Region: \(region)", systemImage: "mappin.and.ellipse")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding(.top, 4)
+                
+                if let difficulty = recipe.difficulty, !difficulty.isEmpty {
+                    QuickStatCard(
+                        icon: "speedometer",
+                        value: difficulty,
+                        unit: "level",
+                        color: .orange
+                    )
+                }
+                
+                Spacer()
             }
         }
-        .padding(16)
+        .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.3), Color.white.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
         )
-        .offset(y: 40)
-        .padding(.horizontal, 16)
+        .offset(y: -30)
+        .padding(.horizontal, 20)
     }
     
-    // MARK: - Tab Selector
-    private var tabSelector: some View {
+    // MARK: - Enhanced Tab Selector
+    private var enhancedTabSelector: some View {
         HStack(spacing: 0) {
-            TabButton(title: "Overview", isActive: activeTab == 0) {
-                activeTab = 0
+            EnhancedTabButton(
+                title: "Overview",
+                icon: "info.circle.fill",
+                isActive: activeTab == 0
+            ) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    activeTab = 0
+                }
             }
-            TabButton(title: "Ingredients", isActive: activeTab == 1) {
-                activeTab = 1
+            
+            EnhancedTabButton(
+                title: "Ingredients",
+                icon: "list.bullet",
+                isActive: activeTab == 1
+            ) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    activeTab = 1
+                }
             }
-            TabButton(title: "Steps", isActive: activeTab == 2) {
-                activeTab = 2
+            
+            EnhancedTabButton(
+                title: "Steps",
+                icon: "number.circle.fill",
+                isActive: activeTab == 2
+            ) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    activeTab = 2
+                }
             }
         }
-        .padding(.top, 24)
+        .padding(.top, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        )
     }
     
-    // MARK: - Tab Content
-    private var tabContent: some View {
+    // MARK: - Enhanced Tab Content
+    private var enhancedTabContent: some View {
         VStack(alignment: .leading, spacing: 20) {
             switch activeTab {
             case 0:
-                overviewTab
+                enhancedOverviewTab
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .leading).combined(with: .opacity),
+                        removal: .move(edge: .trailing).combined(with: .opacity)
+                    ))
             case 1:
-                ingredientsTab
+                enhancedIngredientsTab
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .leading).combined(with: .opacity),
+                        removal: .move(edge: .trailing).combined(with: .opacity)
+                    ))
             case 2:
-                stepsTab
+                enhancedStepsTab
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .leading).combined(with: .opacity),
+                        removal: .move(edge: .trailing).combined(with: .opacity)
+                    ))
             default:
                 EmptyView()
             }
         }
-        .padding(.top, 8)
+        .padding(.top, 16)
+        .animation(.easeInOut(duration: 0.3), value: activeTab)
     }
     
-    // MARK: - Overview Tab
-    private var overviewTab: some View {
-        VStack(alignment: .leading, spacing: 16) {
+    // MARK: - Enhanced Overview Tab
+    private var enhancedOverviewTab: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            // Description with enhanced styling
             if let description = recipe.recipeDescription, !description.isEmpty {
-                Text(Constants.Text.aboutThisDish)
-                    .font(.headline)
-                
-                Text(description)
-                    .foregroundColor(.secondary)
-            }
-            
-            Divider()
-            
-            if let category = recipe.categoryObject {
-                HStack {
-                    Text(Constants.Text.categoryLabel)
-                        .fontWeight(.medium)
-                    
-                    Text(category.name ?? "")
-                    
-                    if let colorHex = category.colorHex {
-                        Circle()
-                            .fill(Color(hex: colorHex))
-                            .frame(width: 12, height: 12)
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Image(systemName: "text.alignleft")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Color("GhanaGold"))
+                        
+                        Text("About This Dish")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
                     }
+                    
+                    Text(description)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.vertical, 4)
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color("GhanaGold").opacity(0.2), lineWidth: 1)
+                        )
+                )
             }
             
-            // Preparation Info
-            Text(Constants.Text.preparation)
-                .font(.headline)
-                .padding(.top, 8)
-            
-            HStack(spacing: 16) {
-                // Prep time
-                VStack {
-                    Text("\(recipe.prepTime) \(Constants.Text.recipeMinutesAbbreviation)")
-                        .font(.title3)
-                        .fontWeight(.medium)
-                    Text(Constants.Text.prepTime)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemGray6))
-                )
+            // Enhanced preparation info
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Preparation Details")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.primary)
                 
-                // Cook time
-                VStack {
-                    Text("\(recipe.cookTime) \(Constants.Text.recipeMinutesAbbreviation)")
-                        .font(.title3)
-                        .fontWeight(.medium)
-                    Text(Constants.Text.cookTime)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                HStack(spacing: 16) {
+                    // Enhanced prep time card
+                    PrepTimeCard(
+                        icon: "timer",
+                        title: "Prep Time",
+                        value: "\(recipe.prepTime)",
+                        unit: "min",
+                        color: .blue
+                    )
+                    
+                    // Enhanced cook time card
+                    PrepTimeCard(
+                        icon: "flame.fill",
+                        title: "Cook Time",
+                        value: "\(recipe.cookTime)",
+                        unit: "min",
+                        color: .orange
+                    )
                 }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemGray6))
-                )
             }
             
-            // ADD THE START COOKING BUTTON HERE
+            // Enhanced Start Cooking Button
             Button(action: {
                 showCookingMode = true
             }) {
-                HStack {
-                    Image(systemName: "play.fill")
+                HStack(spacing: 12) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                    
                     Text("Start Cooking")
-                }
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.blue)
-                        .shadow(color: Color.blue.opacity(0.3), radius: 4, x: 0, y: 2)
-                )
-            }
-            .padding(.top, 20)
-        }
-    }
-    
-    // MARK: - Ingredients Tab
-    private var ingredientsTab: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if let ingredients = recipe.ingredients as? Set<Ingredient>, !ingredients.isEmpty {
-                Text("Ingredients for \(recipe.servings) serving\(recipe.servings > 1 ? "s" : "")")
-                    .font(.headline)
-                
-                ForEach(sortedIngredients, id: \.self) { ingredient in
-                    HStack(alignment: .top, spacing: 12) {
-                        // Bullet point
-                        Circle()
-                            .fill(Color.blue)
-                            .frame(width: 8, height: 8)
-                            .padding(.top, 6)
-                        
-                        // Ingredient details
-                        VStack(alignment: .leading, spacing: 4) {
-                            // Name and quantity
-                            HStack {
-                                Text(formatIngredientQuantity(ingredient))
-                                    .fontWeight(.medium)
-                                
-                                Text(ingredient.name ?? "")
-                            }
-                            
-                            // Notes (if any)
-                            if let notes = ingredient.notes, !notes.isEmpty {
-                                Text(notes)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-            } else {
-                Text("No ingredients available")
-                    .foregroundColor(.secondary)
-                    .italic()
-            }
-        }
-    }
-    
-    // MARK: - Steps Tab
-    private var stepsTab: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            if let steps = recipe.steps as? Set<Step>, !steps.isEmpty {
-                Text("Cooking Instructions")
-                    .font(.headline)
-                
-                ForEach(sortedSteps, id: \.self) { step in
-                    stepView(step: step)
-                }
-            } else {
-                Text("No cooking steps available")
-                    .foregroundColor(.secondary)
-                    .italic()
-            }
-        }
-    }
-    
-    // MARK: - Helper Views
-    private func stepView(step: Step) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Step header
-            HStack {
-                Text("\(Constants.Text.stepPrefix) \(step.orderIndex + 1)")
-                    .font(.headline)
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 12)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(16)
-                
-                if step.duration > 0 {
+                        .font(.system(size: 17, weight: .semibold))
+                    
                     Spacer()
                     
-                    Label("\(step.duration / 60) \(Constants.Text.recipeMinutesAbbreviation)", systemImage: Constants.Assets.clockIcon)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 16, weight: .medium))
                 }
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 18)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color("GhanaGold"), Color("KenteGold")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .shadow(color: Color("GhanaGold").opacity(0.4), radius: 12, x: 0, y: 6)
+                )
+            }
+            .buttonStyle(ScaleButtonStyle())
+        }
+    }
+    
+    // MARK: - Enhanced Ingredients Tab
+    private var enhancedIngredientsTab: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // Header
+            HStack {
+                Image(systemName: "list.bullet")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(Color("GhanaGold"))
+                
+                Text("Ingredients")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Text("for \(recipe.servings) \(recipe.servings == 1 ? "serving" : "servings")")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color(.systemGray6))
+                    )
             }
             
-            // Step instruction
-            Text(step.instruction ?? "")
-                .padding(.vertical, 4)
-            
-            // Step image
-            if let imageName = step.imageName, !imageName.isEmpty {
-                AsyncImageView.asset(
-                    imageName,
-                    contentMode: .fill,
-                    cornerRadius: 8
+            if !sortedIngredients.isEmpty {
+                LazyVStack(spacing: 12) {
+                    ForEach(Array(sortedIngredients.enumerated()), id: \.element) { index, ingredient in
+                        EnhancedIngredientCard(ingredient: ingredient)
+                            .transition(.asymmetric(
+                                insertion: .scale(scale: 0.9).combined(with: .opacity),
+                                removal: .scale(scale: 0.9).combined(with: .opacity)
+                            ))
+                            .animation(
+                                .spring(response: 0.5, dampingFraction: 0.7)
+                                .delay(Double(index) * 0.05),
+                                value: sortedIngredients.count
+                            )
+                    }
+                }
+            } else {
+                EmptyStateView(
+                    icon: "list.bullet",
+                    title: "No Ingredients",
+                    message: "Ingredient list not available for this recipe"
                 )
-                .frame(height: 150)
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemGray6))
-        )
+    }
+    
+    // MARK: - Enhanced Steps Tab
+    private var enhancedStepsTab: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // Header
+            HStack {
+                Image(systemName: "number.circle.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(Color("GhanaGold"))
+                
+                Text("Cooking Steps")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Text("\(sortedSteps.count) steps")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color(.systemGray6))
+                    )
+            }
+            
+            if !sortedSteps.isEmpty {
+                LazyVStack(spacing: 16) {
+                    ForEach(Array(sortedSteps.enumerated()), id: \.element) { index, step in
+                        EnhancedStepCard(step: step, stepNumber: index + 1)
+                            .transition(.asymmetric(
+                                insertion: .scale(scale: 0.9).combined(with: .opacity),
+                                removal: .scale(scale: 0.9).combined(with: .opacity)
+                            ))
+                            .animation(
+                                .spring(response: 0.5, dampingFraction: 0.7)
+                                .delay(Double(index) * 0.1),
+                                value: sortedSteps.count
+                            )
+                    }
+                }
+            } else {
+                EmptyStateView(
+                    icon: "number.circle",
+                    title: "No Steps",
+                    message: "Cooking instructions not available for this recipe"
+                )
+            }
+        }
     }
     
     // MARK: - Helper Methods
@@ -364,7 +514,7 @@ struct RecipeDetailView: View {
         } else if ingredient.quantity.truncatingRemainder(dividingBy: 1) == 0 {
             quantityString = "\(Int(ingredient.quantity))"
         } else {
-            quantityString = "\(ingredient.quantity)"
+            quantityString = String(format: "%.1f", ingredient.quantity)
         }
         
         if let unit = ingredient.unit, !unit.isEmpty {
@@ -386,39 +536,336 @@ struct RecipeDetailView: View {
     }
 }
 
-// MARK: - Tab Button Component
-struct TabButton: View {
+// MARK: - Enhanced Supporting Components
+
+struct CategoryBadge: View {
+    let name: String
+    let color: Color
+    
+    var body: some View {
+        Text(name)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill(color)
+                    .shadow(color: color.opacity(0.4), radius: 2, x: 0, y: 1)
+            )
+    }
+}
+
+struct DifficultyBadge: View {
+    let difficulty: String
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "speedometer")
+                .font(.system(size: 10))
+            Text(difficulty)
+                .font(.system(size: 12, weight: .semibold))
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Capsule()
+                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                )
+        )
+    }
+}
+
+struct QuickStatCard: View {
+    let icon: String
+    let value: String
+    let unit: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(color)
+                .frame(width: 20, height: 20)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                
+                Text(unit)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .frame(height: 44)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(color.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(color.opacity(0.3), lineWidth: 1)
+                )
+        )
+    }
+}
+
+struct PrepTimeCard: View {
+    let icon: String
     let title: String
+    let value: String
+    let unit: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.1))
+                    .frame(width: 50, height: 50)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(color)
+            }
+            
+            VStack(spacing: 4) {
+                Text("\(value) \(unit)")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(color.opacity(0.2), lineWidth: 1)
+                )
+        )
+    }
+}
+
+struct EnhancedTabButton: View {
+    let title: String
+    let icon: String
     let isActive: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .fontWeight(isActive ? .semibold : .regular)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 16)
-                .background(
-                    VStack {
-                        Spacer()
-                        if isActive {
-                            Rectangle()
-                                .fill(Color.blue)
-                                .frame(height: 3)
-                        }
-                    }
-                )
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .semibold))
+                    
+                    Text(title)
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(isActive ? Color("GhanaGold") : .secondary)
+                
+                Rectangle()
+                    .fill(isActive ? Color("GhanaGold") : Color.clear)
+                    .frame(height: 3)
+                    .cornerRadius(1.5)
+            }
         }
-        .foregroundColor(isActive ? .primary : .secondary)
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isActive ? Color("GhanaGold").opacity(0.1) : Color.clear)
+        )
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
     }
 }
 
-// For Preview
+struct EnhancedIngredientCard: View {
+    let ingredient: Ingredient
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Quantity section
+            VStack(alignment: .trailing, spacing: 2) {
+                if ingredient.quantity > 0 {
+                    Text(formatQuantity(ingredient.quantity))
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.primary)
+                }
+                
+                if let unit = ingredient.unit, !unit.isEmpty {
+                    Text(unit)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+            }
+            .frame(width: 60, alignment: .trailing)
+            
+            // Ingredient info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(ingredient.name ?? "Unknown")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.primary)
+                
+                if let notes = ingredient.notes, !notes.isEmpty {
+                    Text(notes)
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .italic()
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                )
+        )
+    }
+    
+    private func formatQuantity(_ quantity: Double) -> String {
+        if quantity.truncatingRemainder(dividingBy: 1) == 0 {
+            return "\(Int(quantity))"
+        } else {
+            return String(format: "%.1f", quantity)
+        }
+    }
+}
+
+struct EnhancedStepCard: View {
+    let step: Step
+    let stepNumber: Int
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Step header
+            HStack {
+                ZStack {
+                    Circle()
+                        .fill(Color("GhanaGold"))
+                        .frame(width: 32, height: 32)
+                    
+                    Text("\(stepNumber)")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                
+                Text("Step \(stepNumber)")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                if step.duration > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "timer")
+                            .font(.system(size: 12))
+                            .foregroundColor(.blue)
+                        
+                        Text("\(step.duration) min")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(Color.blue.opacity(0.1))
+                    )
+                }
+            }
+            
+            // Step instruction
+            Text(step.instruction ?? "No instruction available")
+                .font(.body)
+                .foregroundColor(.primary)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+            
+            // Step image
+            if let imageName = step.imageName, !imageName.isEmpty {
+                AsyncImageView.asset(
+                    imageName,
+                    contentMode: .fill,
+                    cornerRadius: 12
+                )
+                .frame(height: 180)
+                .clipped()
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color("GhanaGold").opacity(0.2), lineWidth: 1)
+                )
+        )
+    }
+}
+
+struct EmptyStateView: View {
+    let icon: String
+    let title: String
+    let message: String
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.system(size: 40))
+                .foregroundColor(.secondary)
+            
+            Text(title)
+                .font(.headline)
+                .foregroundColor(.primary)
+            
+            Text(message)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+}
+
+// MARK: - Scroll Offset Preference Key
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+// MARK: - Preview
 struct RecipeDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        let recipe = MockData.previewRecipe(in: previewContext)
-        let viewModel = MockData.mockRecipeViewModel()
+        let recipe = MockData.previewRecipe(in: PersistenceController.preview.container.viewContext)
+        let viewModel = DataManager.shared.recipeViewModel
         
         NavigationView {
             RecipeDetailView(recipe: recipe, viewModel: viewModel)
