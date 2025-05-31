@@ -7,7 +7,7 @@
 <key>UIBackgroundModes</key>
 <array>
     <string>remote-notification</string>
-    <string>background-processing</string>
+    <string>processing</string>
 </array>
 <key>NSUserNotificationsUsageDescription</key>
 <string>Ayewam needs notification permission to alert you when cooking timers complete, even when the app is closed. This ensures you never miss an important cooking step!</string>
