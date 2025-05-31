@@ -146,28 +146,53 @@ struct SmartHomeRecipeView: View {
                 
                 if isSearching {
                     // SEARCH MODE: Only show search results
-                    searchResultsSection
-                        .padding(.top, 24)
+                    if searchResults.isEmpty {
+                        searchResultsSection
+                            .padding(.top, 24)
+                    } else {
+                        searchResultsSection
+                            .padding(.top, 24)
+                    }
                 } else {
                     // BROWSE MODE: Show all sections
                     Group {
                         // Recipe of the Day Section
                         if selectedCategory == nil {
-                            recipeOfTheDayHero
-                                .padding(.top, 32)
-                            
-                            // Smart recommendations
-                            smartRecommendationsSection
-                                .padding(.top, 28)
+                            if recipes.isEmpty {
+                                LoadingView(message: "Loading today's featured recipe...", style: .hero)
+                                    .padding(.top, 32)
+                            } else {
+                                recipeOfTheDayHero
+                                    .padding(.top, 32)
+                                
+                                // Smart recommendations
+                                if recipes.isEmpty {
+                                    recommendationsLoadingState
+                                        .padding(.top, 28)
+                                } else {
+                                    smartRecommendationsSection
+                                        .padding(.top, 28)
+                                }
+                            }
                         }
                         
                         // Categories section
-                        CategoriesSection
-                            .padding(.top, selectedCategory == nil ? 24 : 20)
+                        if categories.isEmpty {
+                            categoriesLoadingState
+                                .padding(.top, selectedCategory == nil ? 24 : 20)
+                        } else {
+                            CategoriesSection
+                                .padding(.top, selectedCategory == nil ? 24 : 20)
+                        }
                         
                         // All recipes section
-                        filteredRecipesSection
-                            .padding(.top, 16)
+                        if recipes.isEmpty {
+                            LoadingView(message: "Loading authentic Ghanaian recipes...", style: .cards)
+                                .padding(.top, 16)
+                        } else {
+                            filteredRecipesSection
+                                .padding(.top, 16)
+                        }
                     }
                 }
             }
@@ -796,34 +821,61 @@ struct SmartHomeRecipeView: View {
             .padding(.horizontal, 24)
             
             // Horizontal scroll of recommendations
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(stableRecommendations, id: \.self) { recipe in
-                        NavigationLink {
-                            RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
-                        } label: {
-                            CuratedCard(recipe: recipe)
+            if stableRecommendations.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(0..<4, id: \.self) { index in
+                            RecommendationCardSkeleton()
+                                .opacity(1.0 - (Double(index) * 0.1))
+                                .animation(
+                                    .easeInOut(duration: 1.5)
+                                    .repeatForever(autoreverses: true)
+                                    .delay(Double(index) * 0.3),
+                                    value: true
+                                )
                         }
-                        .buttonStyle(.plain)
-                        .onTapGesture {
-                            if let recipeId = recipe.id {
-                                UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                    }
+                    .padding(.horizontal, 24)
+                }
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(stableRecommendations, id: \.self) { recipe in
+                            NavigationLink {
+                                RecipeDetailView(recipe: recipe, viewModel: DataManager.shared.recipeViewModel)
+                            } label: {
+                                CuratedCard(recipe: recipe)
+                            }
+                            .buttonStyle(.plain)
+                            .onTapGesture {
+                                if let recipeId = recipe.id {
+                                    UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
+                                }
                             }
                         }
                     }
+                    .padding(.horizontal, 24)
                 }
-                .padding(.horizontal, 24)
             }
         }
         .onAppear {
-            if stableRecommendations.isEmpty {
+            if !recipes.isEmpty && stableRecommendations.isEmpty {
+                loadRecommendations()
+            }
+        }
+        .onChange(of: recipes.count) { _, newCount in
+            if newCount > 0 && stableRecommendations.isEmpty {
                 loadRecommendations()
             }
         }
     }
     
     private func loadRecommendations() {
-        stableRecommendations = generatePersonalizedRecommendations()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                stableRecommendations = generatePersonalizedRecommendations()
+            }
+        }
     }
 
     private func refreshRecommendations() {
@@ -1203,6 +1255,124 @@ struct SmartHomeRecipeView: View {
             return "Good Afternoon"
         default:
             return "Good Evening"
+        }
+    }
+    
+    private var recommendationsLoadingState: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // Section header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Recommended for You")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Discovering personalized suggestions...")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+            
+            // Horizontal scroll of recommendation skeletons
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(0..<4, id: \.self) { index in
+                        RecommendationCardSkeleton()
+                            .opacity(1.0 - (Double(index) * 0.1))
+                            .animation(
+                                .easeInOut(duration: 1.5)
+                                .repeatForever(autoreverses: true)
+                                .delay(Double(index) * 0.3),
+                                value: true
+                            )
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+        }
+    }
+
+    private var categoriesLoadingState: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Browse by Category")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("Loading traditional cuisine categories...")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(0..<5, id: \.self) { index in
+                        CategoryCardSkeleton()
+                            .animation(
+                                .easeInOut(duration: 1.2)
+                                .repeatForever(autoreverses: true)
+                                .delay(Double(index) * 0.2),
+                                value: true
+                            )
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+        }
+    }
+
+    // MARK: - Skeleton Components
+    struct RecommendationCardSkeleton: View {
+        @State private var isShimmering = false
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: 0) {
+                // Image skeleton
+                ShimmerRectangle(height: 140, width: 200, cornerRadius: 20)
+                
+                // Content skeleton
+                VStack(alignment: .leading, spacing: 8) {
+                    ShimmerRectangle(height: 16, width: 150, cornerRadius: 6)
+                    
+                    HStack(spacing: 8) {
+                        ShimmerRectangle(height: 12, width: 60, cornerRadius: 4)
+                        ShimmerRectangle(height: 12, width: 40, cornerRadius: 4)
+                        Spacer()
+                    }
+                }
+                .padding(16)
+            }
+            .frame(width: 200)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+        }
+    }
+
+    struct CategoryCardSkeleton: View {
+        @State private var isShimmering = false
+        
+        var body: some View {
+            HStack(spacing: 12) {
+                // Icon skeleton
+                ShimmerRectangle(height: 32, width: 32, cornerRadius: 16)
+                
+                // Text skeleton
+                ShimmerRectangle(height: 16, width: 80, cornerRadius: 6)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(
+                Capsule()
+                    .fill(Color(.systemGray6))
+            )
         }
     }
 }
