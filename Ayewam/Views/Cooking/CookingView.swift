@@ -13,6 +13,7 @@ struct CookingView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var showExitConfirmation = false
     @State private var showActiveTimers = false
+    @State private var showClearAllConfirmation = false
     
     // Haptic stuff
     private let hapticImpact = UIImpactFeedbackGenerator(style: .medium)
@@ -44,7 +45,7 @@ struct CookingView: View {
                                         hapticImpact.impactOccurred(intensity: 0.5)
                                     },
                                     onTimerCancel: {
-                                        viewModel.cancelTimer(for: Int(currentStep.orderIndex))
+                                        viewModel.cancelTimerWithNotifications(for: Int(currentStep.orderIndex))
                                         hapticImpact.impactOccurred(intensity: 0.3)
                                     },
                                     onMarkComplete: {
@@ -151,18 +152,37 @@ struct CookingView: View {
             .sheet(isPresented: $showActiveTimers) {
                 NavigationView {
                     ScrollView {
-                        ActiveTimersView(
-                            timers: viewModel.getActiveTimersList(),
-                            steps: viewModel.session.sortedSteps,
-                            onCancel: { stepIndex in
-                                viewModel.cancelTimer(for: stepIndex)
+                        VStack(spacing: 20) {
+                            // Multiple timers view
+                            MultipleTimersView(
+                                activeTimers: viewModel.getActiveTimersList(),
+                                onCancelTimer: { stepIndex in
+                                    viewModel.cancelTimer(for: stepIndex)
+                                    hapticImpact.impactOccurred(intensity: 0.3)
+                                }
+                            )
+                            
+                            // Quick timer management tips
+                            if !viewModel.activeTimers.isEmpty {
+                                timerManagementTips
                             }
-                        )
+                            
+                            Spacer(minLength: 50)
+                        }
                         .padding()
                     }
                     .navigationTitle("Active Timers")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Clear All") {
+                                // Clear all timers with confirmation
+                                showClearAllConfirmation = true
+                            }
+                            .foregroundColor(.red)
+                            .disabled(viewModel.activeTimers.isEmpty)
+                        }
+                        
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button("Done") {
                                 showActiveTimers = false
@@ -170,6 +190,16 @@ struct CookingView: View {
                         }
                     }
                 }
+            }
+            .alert("Clear All Timers?", isPresented: $showClearAllConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Clear All", role: .destructive) {
+                    viewModel.cancelAllTimers()
+                    showActiveTimers = false
+                    hapticImpact.impactOccurred(intensity: 0.8)
+                }
+            } message: {
+                Text("This will stop all \(viewModel.activeTimers.count) active timers. This action cannot be undone.")
             }
         }
     }
@@ -352,6 +382,52 @@ struct CookingView: View {
             return quantityString + " " + unit
         } else {
             return quantityString
+        }
+    }
+    
+    private var timerManagementTips: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "lightbulb.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.orange)
+                
+                Text("Timer Tips")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                tipRow(icon: "bell.fill", text: "Timers will alert you even if the app is closed")
+                tipRow(icon: "iphone", text: "Check your Lock Screen for active timer displays")
+                tipRow(icon: "speaker.wave.2.fill", text: "Make sure your volume is up for timer alerts")
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.orange.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.orange.opacity(0.2), lineWidth: 1)
+                )
+        )
+    }
+
+    private func tipRow(icon: String, text: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundColor(.orange)
+                .frame(width: 16)
+            
+            Text(text)
+                .font(.system(size: 13))
+                .foregroundColor(.secondary)
+            
+            Spacer()
         }
     }
 }

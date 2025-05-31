@@ -49,7 +49,7 @@ extension RecipeDetailView {
     }
 }
 
-// MARK: - Enhanced Cooking View with Completion Tracking
+// MARK: - Cooking View with Completion Tracking
 
 extension CookingViewModel {
     

@@ -383,89 +383,64 @@ struct StepCardView: View {
     
     // MARK: - Step Actions
     private var stepActions: some View {
-        VStack(spacing: 16) {
-            // Timer controls
+        VStack(spacing: 20) {
             if hasTimer {
-                timerControls
+                enhancedTimerSection
             }
             
             // Main action button
             mainActionButton
         }
     }
-    
-    private var timerControls: some View {
-        HStack(spacing: 12) {
-            if isTimerActive {
-                // Cancel timer button
-                Button(action: onTimerCancel) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "stop.circle.fill")
-                            .font(.system(size: 16))
-                        
-                        Text("Stop Timer")
-                            .font(.system(size: 15, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(
-                        Capsule()
-                            .fill(Color.red)
-                            .shadow(color: Color.red.opacity(0.3), radius: 4, x: 0, y: 2)
-                    )
-                }
-                .buttonStyle(ScaleButtonStyle())
-                
-                Spacer()
-                
-                // Timer display
-                VStack(spacing: 4) {
-                    Text("Time Remaining")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .textCase(.uppercase)
-                        .tracking(0.5)
-                    
-                    Text(timerState?.formattedTimeRemaining ?? "0:00")
-                        .font(.system(size: 24, weight: .bold, design: .monospaced))
+
+    // MARK: - Enhanced Timer Section
+    private var enhancedTimerSection: some View {
+        VStack(spacing: 16) {
+            // Timer header
+            HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "timer.circle.fill")
+                        .font(.system(size: 16))
                         .foregroundColor(Color("TimerActive"))
+                    
+                    Text("Cooking Timer")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.primary)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color("TimerActive").opacity(0.1))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color("TimerActive").opacity(0.3), lineWidth: 1)
-                        )
-                )
-                
-            } else {
-                // Start timer button
-                Button(action: onTimerStart) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "timer")
-                            .font(.system(size: 16))
-                        
-                        Text("Start \(formattedStepDuration) Timer")
-                            .font(.system(size: 15, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background(
-                        Capsule()
-                            .fill(Color("TimerActive"))
-                            .shadow(color: Color("TimerActive").opacity(0.3), radius: 4, x: 0, y: 2)
-                    )
-                }
-                .buttonStyle(ScaleButtonStyle())
                 
                 Spacer()
+                
+                if !isTimerActive {
+                    Text(formattedStepDuration)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color("TimerActive").opacity(0.1))
+                        )
+                }
             }
+            
+            // Circular timer display
+            EnhancedTimerView(
+                duration: Int(step.duration),
+                timerState: timerState,
+                onStart: onTimerStart,
+                onCancel: onTimerCancel
+            )
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color("TimerActive").opacity(0.2), lineWidth: 1)
+                )
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
     
     private var mainActionButton: some View {

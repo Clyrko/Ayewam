@@ -85,27 +85,6 @@ class CookingViewModel: ObservableObject {
         }
     }
     
-    func updateLiveActivity() {
-        guard let activity = activity else { return }
-        
-        let updatedState = CookingActivityAttributes.ContentState(
-            recipeName: session.recipe.name ?? "Recipe",
-            currentStep: session.currentStepIndex + 1,
-            totalSteps: session.totalSteps,
-            timerEndTime: getActiveTimerEndTime(),
-            timerStepName: session.currentStep?.instruction
-        )
-        
-        let updatedContent = ActivityContent(
-            state: updatedState,
-            staleDate: nil
-        )
-        
-        Task {
-            await activity.update(updatedContent)
-        }
-    }
-    
     func endLiveActivity() {
         guard let activity = activity else { return }
         
@@ -142,25 +121,6 @@ class CookingViewModel: ObservableObject {
         return Date().addingTimeInterval(TimeInterval(timerState.remainingTime))
     }
     
-    func startCooking() {
-        session.start()
-        enableScreenWakeLock()
-        showFullScreenMode = true
-        if ActivityAuthorizationInfo().areActivitiesEnabled {
-            startLiveActivity()
-        }
-    }
-    
-    func endCooking() {
-        session.end()
-        disableScreenWakeLock()
-        showFullScreenMode = false
-        cancelAllTimers()
-        if isLiveActivityEnabled {
-            endLiveActivity()
-        }
-    }
-    
     func nextStep() {
         let result = session.moveToNextStep()
         if !result {
@@ -194,14 +154,17 @@ class CookingViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Timer Management
+    // MARK: - Enhanced Timer Management with Notifications
     
+    /// Start timer with native iOS notifications and enhanced feedback
     func startTimer(for step: Step) {
         guard step.duration > 0 else { return }
         let stepIndex = Int(step.orderIndex)
         
-        cancelTimer(for: stepIndex)
+        // Cancel any existing timer for this step
+        cancelTimerWithNotifications(for: stepIndex)
         
+        // Create timer state
         let timerState = TimerState(
             duration: Int(step.duration),
             startTime: Date(),
@@ -210,6 +173,7 @@ class CookingViewModel: ObservableObject {
         
         activeTimers[stepIndex] = timerState
         
+        // Start visual timer (existing functionality)
         let timer = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] date in
@@ -218,11 +182,67 @@ class CookingViewModel: ObservableObject {
         
         timerCancellables[stepIndex] = timer
         
+        // Schedule native notifications
+        Task {
+            await TimerNotificationService.shared.scheduleAdvancedTimerNotification(
+                stepNumber: stepIndex + 1,
+                stepInstruction: step.instruction ?? "Cooking step",
+                totalDuration: TimeInterval(step.duration),
+                recipeID: session.recipe.id ?? "recipe_\(Date().timeIntervalSince1970)"
+            )
+        }
+        
+        // Update Live Activity
         if isLiveActivityEnabled {
             updateLiveActivity()
         }
+        
+        // Play start sound
+        TimerNotificationService.shared.playTimerWarningSound()
+        
+        print("🔔 Enhanced timer started for step \(stepIndex + 1) (\(step.duration)s)")
     }
     
+    /// Cancel timer with notification cleanup
+    func cancelTimer(for stepIndex: Int) {
+        cancelTimerWithNotifications(for: stepIndex)
+    }
+    
+    /// Enhanced timer cancellation with notification cleanup
+    func cancelTimerWithNotifications(for stepIndex: Int) {
+        // Remove visual timer
+        activeTimers.removeValue(forKey: stepIndex)
+        timerCancellables.removeValue(forKey: stepIndex)?.cancel()
+        
+        // Cancel notifications
+        let recipeID = session.recipe.id ?? "recipe_\(Date().timeIntervalSince1970)"
+        let timerID = TimerNotificationService.timerID(stepIndex: stepIndex, recipeID: recipeID)
+        TimerNotificationService.shared.cancelTimerNotification(timerID: timerID)
+        
+        // Cancel warning notifications too
+        TimerNotificationService.shared.cancelTimerNotification(timerID: "\(timerID)_warning_60")
+        TimerNotificationService.shared.cancelTimerNotification(timerID: "\(timerID)_warning_30")
+        
+        print("🗑️ Enhanced timer cancelled for step \(stepIndex + 1)")
+    }
+    
+    /// Cancel all timers with notification cleanup
+    func cancelAllTimers() {
+        // Cancel all visual timers
+        for (stepIndex, _) in timerCancellables {
+            cancelTimerWithNotifications(for: stepIndex)
+        }
+        
+        // Cleanup any remaining notifications
+        TimerNotificationService.shared.cancelAllTimerNotifications()
+        
+        activeTimers.removeAll()
+        timerCancellables.removeAll()
+        
+        print("🗑️ All enhanced timers cancelled")
+    }
+    
+    /// Enhanced timer update with warning notifications
     private func updateTimer(for stepIndex: Int, at date: Date) {
         guard var timerState = activeTimers[stepIndex], timerState.isRunning else { return }
         
@@ -232,72 +252,136 @@ class CookingViewModel: ObservableObject {
         timerState.remainingTime = remainingTime
         activeTimers[stepIndex] = timerState
         
+        // Check for warning thresholds (play sound in-app for immediate feedback)
+        if remainingTime == 60 || remainingTime == 30 {
+            TimerNotificationService.shared.playTimerWarningSound()
+            print("⚠️ Timer warning: \(remainingTime)s remaining for step \(stepIndex + 1)")
+        }
+        
         if remainingTime <= 0 {
             timerCompleted(for: stepIndex)
         }
     }
     
+    /// Enhanced timer completion with rich feedback
     private func timerCompleted(for stepIndex: Int) {
-        cancelTimer(for: stepIndex)
-        playTimerCompletionFeedback()
+        // Cancel the timer
+        cancelTimerWithNotifications(for: stepIndex)
+        
+        // Enhanced completion feedback
+        TimerNotificationService.shared.playTimerCompletionSound()
+        
+        // Show in-app completion notification if app is active
         showTimerCompletionNotification(for: stepIndex)
         
+        // Update Live Activity
         if isLiveActivityEnabled {
             updateLiveActivity()
         }
-    }
-
-    func cancelTimer(for stepIndex: Int) {
-        activeTimers.removeValue(forKey: stepIndex)
-        timerCancellables.removeValue(forKey: stepIndex)?.cancel()
-    }
-    
-    func cancelAllTimers() {
-        for (stepIndex, _) in timerCancellables {
-            cancelTimer(for: stepIndex)
-        }
-        activeTimers.removeAll()
-        timerCancellables.removeAll()
-    }
-
-    private func playTimerCompletionFeedback() {
-        // Play sound
-        AudioServicesPlaySystemSound(1007)
         
-        // Vibration
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
+        print("✅ Timer completed for step \(stepIndex + 1) with enhanced feedback")
     }
     
+    /// Show in-app timer completion notification
     private func showTimerCompletionNotification(for stepIndex: Int) {
-        // Show local notification if app is in background
-        let content = UNMutableNotificationContent()
-        content.title = "Timer Complete"
-        
-        if let step = session.sortedSteps.first(where: { Int($0.orderIndex) == stepIndex }) {
-            content.body = "Time's up for: \(step.instruction ?? "your cooking step")"
-        } else {
-            content.body = "Your cooking timer is complete!"
+        // Find the step
+        guard let step = session.sortedSteps.first(where: { Int($0.orderIndex) == stepIndex }) else {
+            return
         }
         
+        // Create local notification content for in-app display
+        let content = UNMutableNotificationContent()
+        content.title = "⏰ Timer Complete!"
+        content.body = "Step \(stepIndex + 1): \(step.instruction ?? "Cooking step")"
         content.sound = .default
         
+        // Show immediately (for in-app notification)
         let request = UNNotificationRequest(
-            identifier: "timer-\(stepIndex)",
+            identifier: "timer_complete_\(stepIndex)_\(Date().timeIntervalSince1970)",
             content: content,
             trigger: nil
         )
         
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                print("Error scheduling notification: \(error)")
+                print("❌ Failed to show in-app timer notification: \(error)")
             }
+        }
+    }
+    
+    /// Update Live Activity with current timer information
+    func updateLiveActivity() {
+        guard let activity = activity else { return }
+        
+        // Get the most urgent timer (least time remaining)
+        let activeTimersList = getActiveTimersList()
+        let urgentTimer = activeTimersList.min(by: { $0.state.remainingTime < $1.state.remainingTime })
+        
+        let timerEndTime = urgentTimer.map { timer in
+            Date().addingTimeInterval(TimeInterval(timer.state.remainingTime))
+        }
+        
+        let updatedState = CookingActivityAttributes.ContentState(
+            recipeName: session.recipe.name ?? "Recipe",
+            currentStep: session.currentStepIndex + 1,
+            totalSteps: session.totalSteps,
+            timerEndTime: timerEndTime,
+            timerStepName: urgentTimer != nil ? "Step \(urgentTimer!.stepIndex + 1)" : nil
+        )
+        
+        let updatedContent = ActivityContent(
+            state: updatedState,
+            staleDate: nil
+        )
+        
+        Task {
+            await activity.update(updatedContent)
+            print("🔴 Live Activity updated with timer info")
         }
     }
     
     func getActiveTimersList() -> [(stepIndex: Int, state: TimerState)] {
         return activeTimers.map { (stepIndex: $0.key, state: $0.value) }
             .sorted { $0.stepIndex < $1.stepIndex }
+    }
+    
+    // MARK: - Enhanced Session Management
+    
+    /// Enhanced cooking session start
+    func startCooking() {
+        session.start()
+        enableScreenWakeLock()
+        showFullScreenMode = true
+        
+        // Setup notification categories
+        TimerNotificationService.shared.setupNotificationCategories()
+        
+        // Start Live Activity if enabled
+        if ActivityAuthorizationInfo().areActivitiesEnabled {
+            startLiveActivity()
+        }
+        
+        print("🔥 Enhanced cooking session started")
+    }
+    
+    /// Enhanced cooking session end
+    func endCooking() {
+        session.end()
+        disableScreenWakeLock()
+        showFullScreenMode = false
+        
+        // Cancel all timers and notifications
+        cancelAllTimers()
+        
+        // End Live Activity
+        if isLiveActivityEnabled {
+            endLiveActivity()
+        }
+        
+        // Track cooking session end
+        trackCookingSessionEnd()
+        
+        print("🏁 Enhanced cooking session ended")
     }
     
     // MARK: - Screen Wake Lock
