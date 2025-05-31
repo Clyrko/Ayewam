@@ -740,6 +740,8 @@ struct SmartHomeRecipeView: View {
                             if let recipeId = recipe.id {
                                 UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
                             }
+                            let impact = UIImpactFeedbackGenerator(style: .medium)
+                            impact.impactOccurred()
                         }
                     }
                 }

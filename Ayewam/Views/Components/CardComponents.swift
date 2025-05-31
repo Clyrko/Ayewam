@@ -252,11 +252,6 @@ struct RecipeCard: View {
             axis: (x: 0.1, y: 0.1, z: 0)
         )
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isPressed)
-        .onTapGesture {
-            // Haptic feedback
-            let impact = UIImpactFeedbackGenerator(style: .medium)
-            impact.impactOccurred()
-        }
         .pressEvents {
             withAnimation(.easeInOut(duration: 0.1)) {
                 isPressed = true
