@@ -498,9 +498,44 @@ struct RecipeDetailView: View {
     // MARK: - Steps Tab
     private var stepsTab: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Header
+            // Header with cooking time estimate
+            stepsHeader
+            
+            if !sortedSteps.isEmpty {
+                LazyVStack(spacing: 16) {
+                    ForEach(Array(sortedSteps.enumerated()), id: \.element) { index, step in
+                        ModernStepCard(
+                            step: step,
+                            stepNumber: index + 1,
+                            totalSteps: sortedSteps.count,
+                            estimatedTotalTime: totalCookingTime
+                        )
+                        .transition(.asymmetric(
+                            insertion: .scale(scale: 0.9).combined(with: .opacity),
+                            removal: .scale(scale: 0.9).combined(with: .opacity)
+                        ))
+                        .animation(
+                            .spring(response: 0.5, dampingFraction: 0.7)
+                            .delay(Double(index) * 0.05),
+                            value: sortedSteps.count
+                        )
+                    }
+                }
+            } else {
+                EmptyStateView(
+                    icon: "list.number",
+                    title: "No Cooking Steps",
+                    message: "This recipe doesn't have detailed cooking steps available yet."
+                )
+            }
+        }
+    }
+    
+    // MARK: - Steps Header
+    private var stepsHeader: some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: "number.circle.fill")
+                Image(systemName: "list.number")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(Color("GhanaGold"))
                 
@@ -520,35 +555,412 @@ struct RecipeDetailView: View {
                             .fill(Color(.systemGray6))
                     )
             }
+        }
+    }
+
+    // MARK: - Modern Step Card Component
+    struct ModernStepCard: View {
+        let step: Step
+        let stepNumber: Int
+        let totalSteps: Int
+        let estimatedTotalTime: Int32
+        
+        @State private var isExpanded = false
+        @State private var showIngredientHighlights = false
+        
+        private var hasTimer: Bool {
+            step.duration > 0
+        }
+        
+        private var estimatedStartTime: String {
+            // Calculate when this step might start based on previous steps
+            let previousStepsTime = calculatePreviousStepsTime()
+            let minutes = Int(previousStepsTime) / 60
             
-            if !sortedSteps.isEmpty {
-                LazyVStack(spacing: 16) {
-                    ForEach(Array(sortedSteps.enumerated()), id: \.element) { index, step in
-                        StepCard(step: step, stepNumber: index + 1)
-                            .transition(.asymmetric(
-                                insertion: .scale(scale: 0.9).combined(with: .opacity),
-                                removal: .scale(scale: 0.9).combined(with: .opacity)
-                            ))
-                            .animation(
-                                .spring(response: 0.5, dampingFraction: 0.7)
-                                .delay(Double(index) * 0.1),
-                                value: sortedSteps.count
+            if minutes == 0 {
+                return "Start immediately"
+            } else if minutes < 60 {
+                return "After ~\(minutes) min"
+            } else {
+                let hours = minutes / 60
+                let remainingMinutes = minutes % 60
+                return "After ~\(hours)h \(remainingMinutes)m"
+            }
+        }
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: 0) {
+                // Step header
+                stepHeader
+                
+                // Main instruction content
+                instructionContent
+                
+                // Timer and additional info section
+                if hasTimer || !stepIngredients.isEmpty {
+                    additionalInfoSection
+                }
+            }
+            .padding(20)
+            .background(stepCardBackground)
+            .onTapGesture {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    isExpanded.toggle()
+                }
+            }
+        }
+        
+        // MARK: - Step Header
+        private var stepHeader: some View {
+            HStack(alignment: .top, spacing: 16) {
+                // Step number with progress indicator
+                stepNumberIndicator
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    // Step title and timing
+                    HStack {
+                        Text("Step \(stepNumber)")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        if hasTimer {
+                            timerBadge
+                        }
+                    }
+                    
+                    // Estimated timing
+                    if stepNumber > 1 {
+                        Text(estimatedStartTime)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule()
+                                    .fill(Color(.systemGray6))
                             )
                     }
                 }
-            } else {
-                EmptyStateView(
-                    icon: "number.circle",
-                    title: "No Steps",
-                    message: "Cooking instructions not available for this recipe"
-                )
+            }
+            .padding(.bottom, 16)
+        }
+        
+        private var stepNumberIndicator: some View {
+            ZStack {
+                // Progress ring
+                Circle()
+                    .stroke(Color("GhanaGold").opacity(0.2), lineWidth: 3)
+                    .frame(width: 44, height: 44)
+                
+                Circle()
+                    .trim(from: 0, to: CGFloat(stepNumber) / CGFloat(totalSteps))
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color("GhanaGold"), Color("KenteGold")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                    )
+                    .frame(width: 44, height: 44)
+                    .rotationEffect(.degrees(-90))
+                
+                // Step number
+                Text("\(stepNumber)")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(Color("GhanaGold"))
             }
         }
+        
+        private var timerBadge: some View {
+            HStack(spacing: 4) {
+                Image(systemName: "timer")
+                    .font(.system(size: 12))
+                
+                Text(formatStepDuration(step.duration))
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill(Color("TimerActive"))
+                    .shadow(color: Color("TimerActive").opacity(0.3), radius: 2, x: 0, y: 1)
+            )
+        }
+        
+        // MARK: - Instruction Content
+        private var instructionContent: some View {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(step.instruction ?? "No instruction available")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.primary)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                // Expand/collapse indicator for additional info
+                if hasTimer || !stepIngredients.isEmpty {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            isExpanded.toggle()
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .font(.system(size: 12, weight: .medium))
+                            
+                            Text(isExpanded ? "Less details" : "More details")
+                                .font(.system(size: 13, weight: .medium))
+                            
+                            if !stepIngredients.isEmpty && !isExpanded {
+                                Text("• \(stepIngredients.count) ingredients")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .foregroundColor(Color("GhanaGold"))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        
+        // MARK: - Additional Info Section
+        private var additionalInfoSection: some View {
+            Group {
+                if isExpanded {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Divider()
+                            .padding(.vertical, 4)
+                        
+                        // Step-specific ingredients
+                        if !stepIngredients.isEmpty {
+                            stepIngredientsSection
+                        }
+                        
+                        // Cooking tips
+                        cookingTipsSection
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
+                }
+            }
+        }
+        
+        private var stepIngredientsSection: some View {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "leaf.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(Color("SoupTeal"))
+                    
+                    Text("Ingredients for this step")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                }
+                
+                LazyVStack(alignment: .leading, spacing: 6) {
+                    ForEach(stepIngredients, id: \.self) { ingredient in
+                        HStack(spacing: 10) {
+                            Circle()
+                                .fill(Color("SoupTeal"))
+                                .frame(width: 6, height: 6)
+                            
+                            if ingredient.quantity > 0 {
+                                Text(formatIngredientQuantity(ingredient))
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.primary)
+                            }
+                            
+                            Text(ingredient.name ?? "Unknown")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.secondary)
+                            
+                            if let notes = ingredient.notes, !notes.isEmpty {
+                                Text("(\(notes))")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                                    .italic()
+                            }
+                            
+                            Spacer()
+                        }
+                    }
+                }
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color("SoupTeal").opacity(0.05))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color("SoupTeal").opacity(0.2), lineWidth: 1)
+                    )
+            )
+        }
+        
+        private var cookingTipsSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "lightbulb.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.orange)
+                    
+                    Text("Pro Tips")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(getCookingTips(), id: \.self) { tip in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("•")
+                                .font(.system(size: 12))
+                                .foregroundColor(.orange)
+                                .padding(.top, 1)
+                            
+                            Text(tip)
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            Spacer()
+                        }
+                    }
+                }
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.orange.opacity(0.05))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.orange.opacity(0.2), lineWidth: 1)
+                    )
+            )
+        }
+        
+        // MARK: - Background
+        private var stepCardBackground: some View {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color("GhanaGold").opacity(0.2), Color("GhanaGold").opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
+        }
+        
+        // MARK: - Helper Methods
+        private func calculatePreviousStepsTime() -> Int32 {
+            // This would need access to all previous steps to calculate cumulative time
+            // For now, return a simple estimate based on step number
+            return Int32((stepNumber - 1) * 5 * 60) // Assume 5 minutes per previous step
+        }
+        
+        private func formatStepDuration(_ duration: Int32) -> String {
+            let minutes = Int(duration) / 60
+            let seconds = Int(duration) % 60
+            
+            if minutes > 0 && seconds > 0 {
+                return "\(minutes)m \(seconds)s"
+            } else if minutes > 0 {
+                return "\(minutes)m"
+            } else {
+                return "\(seconds)s"
+            }
+        }
+        
+        private func formatDetailedDuration(_ duration: Int32) -> String {
+            let minutes = Int(duration) / 60
+            let seconds = Int(duration) % 60
+            
+            if minutes > 0 && seconds > 0 {
+                return "\(minutes) minutes \(seconds) seconds"
+            } else if minutes > 0 {
+                return "\(minutes) minute\(minutes == 1 ? "" : "s")"
+            } else {
+                return "\(seconds) second\(seconds == 1 ? "" : "s")"
+            }
+        }
+        
+        private func formatIngredientQuantity(_ ingredient: Ingredient) -> String {
+            let quantityString: String
+            if ingredient.quantity == 0 {
+                return ""
+            } else if ingredient.quantity.truncatingRemainder(dividingBy: 1) == 0 {
+                quantityString = "\(Int(ingredient.quantity))"
+            } else {
+                quantityString = String(format: "%.1f", ingredient.quantity)
+            }
+            
+            if let unit = ingredient.unit, !unit.isEmpty {
+                return quantityString + " " + unit
+            } else {
+                return quantityString
+            }
+        }
+        
+        private var stepIngredients: [Ingredient] {
+            // This would analyze the step instruction to find mentioned ingredients
+            // For now, return empty array - you'd implement the ingredient detection logic
+            return []
+        }
+        
+        private func getCookingTips() -> [String] {
+            var tips: [String] = []
+            
+            // Add timer-specific tips
+            if hasTimer {
+                tips.append("Set a timer to avoid overcooking")
+                tips.append("Keep an eye on the food during the last minute")
+            }
+            
+            // Add step-specific tips based on keywords in instruction
+            if let instruction = step.instruction?.lowercased() {
+                if instruction.contains("fry") || instruction.contains("sauté") {
+                    tips.append("Heat the oil properly before adding ingredients")
+                }
+                if instruction.contains("stir") {
+                    tips.append("Stir gently to avoid breaking delicate ingredients")
+                }
+                if instruction.contains("boil") {
+                    tips.append("Watch for the rolling boil, then reduce heat")
+                }
+                if instruction.contains("season") || instruction.contains("salt") {
+                    tips.append("Taste as you go - you can always add more seasoning")
+                }
+            }
+            
+            // Default tip if no specific ones apply
+            if tips.isEmpty {
+                tips.append("Take your time and follow the instruction carefully")
+            }
+            
+            return tips
+        }
     }
-    
+
     // MARK: - Helper Methods
     private func toggleFavorite() {
         viewModel.toggleFavorite(recipe)
+    }
+    
+    private var totalCookingTime: Int32 {
+        recipe.prepTime + recipe.cookTime
     }
     
     private func formatIngredientQuantity(_ ingredient: Ingredient) -> String {
@@ -757,9 +1169,11 @@ struct IngredientCard: View {
                     Text(unit)
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(2)
                 }
             }
-            .frame(width: 60, alignment: .trailing)
+            .frame(minWidth: 60, alignment: .trailing)
             
             // Ingredient info
             VStack(alignment: .leading, spacing: 4) {
