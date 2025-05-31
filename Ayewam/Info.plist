@@ -3,14 +3,17 @@
 <plist version="1.0">
 <dict>
     <key>NSSupportsLiveActivities</key>
-<true/>
-<key>UIBackgroundModes</key>
-<array>
-    <string>remote-notification</string>
-    <string>processing</string>
-</array>
-<key>NSUserNotificationsUsageDescription</key>
-<string>Ayewam needs notification permission to alert you when cooking timers complete, even when the app is closed. This ensures you never miss an important cooking step!</string>
+    <true/>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>remote-notification</string>
+        <string>processing</string>
+    </array>
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+        <string>com.ayewam.apprefresh</string> </array>
+    <key>NSUserNotificationsUsageDescription</key>
+    <string>Ayewam needs notification permission to alert you when cooking timers complete, even when the app is closed. This ensures you never miss an important cooking step!</string>
     <key>CFBundleLocalizations</key>
     <array>
         <string>en</string>
