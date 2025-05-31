@@ -8,6 +8,10 @@
 import SwiftUI
 import CoreData
 
+extension Notification.Name {
+    static let switchToHomeTab = Notification.Name("switchToHomeTab")
+}
+
 struct ContentView: View {
     @State private var selectedTab = 0
 
@@ -36,6 +40,11 @@ struct ContentView: View {
             TabBar(selectedTab: $selectedTab)
         }
         .ignoresSafeArea(.keyboard)
+        .onReceive(NotificationCenter.default.publisher(for: .switchToHomeTab)) { _ in
+            withAnimation(.easeInOut(duration: 0.3)) {
+                selectedTab = 0
+            }
+        }
     }
 
     func tabIcon(for index: Int) -> String {
