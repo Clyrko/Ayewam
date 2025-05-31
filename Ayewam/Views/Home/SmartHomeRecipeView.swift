@@ -43,15 +43,17 @@ struct SmartHomeRecipeView: View {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
         case 5...11:
-            return Color("BreakfastOrange")
-        case 12...17:
             return Color("GhanaGold")
-        case 18...20:
+        case 12...17:
             return Color("WarmRed")
+        case 18...20:
+            return Color("ForestGreen")
         default:
-            return Color("DrinkBlue")
+            return Color("KenteGold")
         }
     }
+    
+    
     
     private var todaysHeroRecipe: Recipe? {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -563,19 +565,23 @@ struct SmartHomeRecipeView: View {
     
     // MARK: - Greeting Section
     private var greetingSection: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(timeBasedGreeting)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.primary, Color("GhanaGold")],
-                            startPoint: .leading,
-                            endPoint: .trailing
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 8) {
+                // Twi greeting with cultural context
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(timeBasedTwiGreeting)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.primary, Color("GhanaGold")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
-                    )
+                }
                 
-                Text("Ready to cook?")
+                // Cultural context subtitle
+                Text(culturalContextSubtitle)
                     .font(.title3)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
@@ -586,16 +592,30 @@ struct SmartHomeRecipeView: View {
             // Time of day icon
             ZStack {
                 Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                timeOfDayColor.opacity(0.1),
+                                .clear
+                            ],
+                            center: .center,
+                            startRadius: 5,
+                            endRadius: 30
+                        )
+                    )
+                    .frame(width: 60, height: 60)
+                
+                Circle()
                     .fill(.ultraThinMaterial)
-                    .frame(width: 50, height: 50)
+                    .frame(width: 56, height: 56)
                     .overlay(
                         Circle()
-                            .stroke(timeOfDayColor.opacity(0.3), lineWidth: 2)
+                            .stroke(timeOfDayColor.opacity(0.4), lineWidth: 2)
                     )
-                    .shadow(color: timeOfDayColor.opacity(0.2), radius: 4, x: 0, y: 2)
+                    .shadow(color: timeOfDayColor.opacity(0.3), radius: 6, x: 0, y: 3)
                 
                 Image(systemName: timeOfDayIcon)
-                    .font(.system(size: 22, weight: .semibold))
+                    .font(.system(size: 24, weight: .semibold))
                     .foregroundColor(timeOfDayColor)
                     .symbolEffect(.variableColor.iterative, options: .repeat(.periodic(delay: 3.0)))
             }
@@ -603,6 +623,39 @@ struct SmartHomeRecipeView: View {
         .padding(.horizontal, 24)
         .padding(.top, 12)
         .padding(.bottom, 8)
+    }
+
+    // MARK: - Computed Properties
+    private var timeBasedTwiGreeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5...11:
+            return "Maakye!"
+        case 12...17:
+            return "Maaha!"
+        default:
+            return "Maadwo!"
+        }
+    }
+
+    private var culturalContextSubtitle: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        let isWeekend = Calendar.current.isDateInWeekend(Date())
+        
+        switch hour {
+        case 5...11:
+            return isWeekend ?
+                "Perfect for tea bread or bofrot" :
+                "Ready for koko or porridge?"
+        case 12...17:
+            return isWeekend ?
+                "Time for jollof or waakye" :
+                "What delicious dish awaits?"
+        default:
+            return isWeekend ?
+                "Evening soup and fufu time" :
+                "Perfect for a warm meal"
+        }
     }
     
     // MARK: - Search Section
