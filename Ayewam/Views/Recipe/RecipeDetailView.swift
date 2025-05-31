@@ -18,42 +18,46 @@ struct RecipeDetailView: View {
     @State private var favoriteScale: CGFloat = 1.0
     
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Recipe Header
-                    enhancedRecipeHeaderView
-                        .background(
-                            GeometryReader { headerGeometry in
-                                Color.clear.preference(
-                                    key: ScrollOffsetPreferenceKey.self,
-                                    value: headerGeometry.frame(in: .named("scroll")).minY
-                                )
-                            }
-                        )
-                    
-                    // Recipe title panel
-                    enhancedRecipeTitlePanel
-                    
-                    // Enhanced Recipe info tabs
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Enhanced tab selector
-                        enhancedTabSelector
+        ZStack {
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Recipe Header
+                        recipeHeaderView
+                            .background(
+                                GeometryReader { headerGeometry in
+                                    Color.clear.preference(
+                                        key: ScrollOffsetPreferenceKey.self,
+                                        value: headerGeometry.frame(in: .named("scroll")).minY
+                                    )
+                                }
+                            )
                         
-                        // Enhanced tab content
-                        enhancedTabContent
+                        // Recipe title panel
+                        recipeTitlePanel
+                        
+                        // Recipe info tabs
+                        VStack(alignment: .leading, spacing: 20) {
+                            // Tab selector
+                            tabSelector
+                            
+                            // Tab content
+                            tabContent
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 120)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 100)
+                }
+                .coordinateSpace(name: "scroll")
+                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                    scrollOffset = value
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showHeaderBackground = value < -50
+                    }
                 }
             }
-            .coordinateSpace(name: "scroll")
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                scrollOffset = value
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showHeaderBackground = value < -50
-                }
-            }
+            
+            floatingStartCookingButton
         }
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
@@ -94,8 +98,8 @@ struct RecipeDetailView: View {
         }
     }
     
-    // MARK: - Enhanced Recipe Header
-    private var enhancedRecipeHeaderView: some View {
+    // MARK: - Recipe Header
+    private var recipeHeaderView: some View {
         ZStack(alignment: .bottomLeading) {
             if let imageName = recipe.imageName, !imageName.isEmpty {
                 AsyncImageView.asset(
@@ -105,7 +109,7 @@ struct RecipeDetailView: View {
                 .frame(height: 200)
                 .clipped()
                 .overlay(
-                    // Enhanced gradient overlay
+                    // Gradient overlay
                     LinearGradient(
                         colors: [
                             Color.clear,
@@ -163,10 +167,10 @@ struct RecipeDetailView: View {
         }
     }
     
-    // MARK: - Enhanced Recipe Title Panel
-    private var enhancedRecipeTitlePanel: some View {
+    // MARK: - Recipe Title Panel
+    private var recipeTitlePanel: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Recipe Name with enhanced typography
+            // Recipe Name
             Text(recipe.name ?? "Unknown Recipe")
                 .font(.system(size: 28, weight: .black, design: .rounded))
                 .foregroundStyle(
@@ -178,7 +182,7 @@ struct RecipeDetailView: View {
                 )
                 .lineLimit(3)
             
-            // Quick stats with enhanced design
+            // Quick stats
             HStack(spacing: 20) {
                 if recipe.prepTime > 0 || recipe.cookTime > 0 {
                     QuickStatCard(
@@ -232,10 +236,10 @@ struct RecipeDetailView: View {
         .padding(.horizontal, 20)
     }
     
-    // MARK: - Enhanced Tab Selector
-    private var enhancedTabSelector: some View {
+    // MARK: - Tab Selector
+    private var tabSelector: some View {
         HStack(spacing: 0) {
-            EnhancedTabButton(
+            TabButton(
                 title: "Overview",
                 icon: "info.circle.fill",
                 isActive: activeTab == 0
@@ -245,7 +249,7 @@ struct RecipeDetailView: View {
                 }
             }
             
-            EnhancedTabButton(
+            TabButton(
                 title: "Ingredients",
                 icon: "list.bullet",
                 isActive: activeTab == 1
@@ -255,7 +259,7 @@ struct RecipeDetailView: View {
                 }
             }
             
-            EnhancedTabButton(
+            TabButton(
                 title: "Steps",
                 icon: "number.circle.fill",
                 isActive: activeTab == 2
@@ -273,24 +277,24 @@ struct RecipeDetailView: View {
         )
     }
     
-    // MARK: - Enhanced Tab Content
-    private var enhancedTabContent: some View {
+    // MARK: - Tab Content
+    private var tabContent: some View {
         VStack(alignment: .leading, spacing: 20) {
             switch activeTab {
             case 0:
-                enhancedOverviewTab
+                overviewTab
                     .transition(.asymmetric(
                         insertion: .move(edge: .leading).combined(with: .opacity),
                         removal: .move(edge: .trailing).combined(with: .opacity)
                     ))
             case 1:
-                enhancedIngredientsTab
+                ingredientsTab
                     .transition(.asymmetric(
                         insertion: .move(edge: .leading).combined(with: .opacity),
                         removal: .move(edge: .trailing).combined(with: .opacity)
                     ))
             case 2:
-                enhancedStepsTab
+                stepsTab
                     .transition(.asymmetric(
                         insertion: .move(edge: .leading).combined(with: .opacity),
                         removal: .move(edge: .trailing).combined(with: .opacity)
@@ -303,10 +307,10 @@ struct RecipeDetailView: View {
         .animation(.easeInOut(duration: 0.3), value: activeTab)
     }
     
-    // MARK: - Enhanced Overview Tab
-    private var enhancedOverviewTab: some View {
+    // MARK: - Overview Tab
+    private var overviewTab: some View {
         VStack(alignment: .leading, spacing: 24) {
-            // Description with enhanced styling
+            // Description
             if let description = recipe.recipeDescription, !description.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
@@ -338,14 +342,14 @@ struct RecipeDetailView: View {
                 )
             }
             
-            // Enhanced preparation info
+            // Preparation info
             VStack(alignment: .leading, spacing: 16) {
                 Text("Preparation Details")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.primary)
                 
                 HStack(spacing: 16) {
-                    // Enhanced prep time card
+                    // Prep time card
                     PrepTimeCard(
                         icon: "timer",
                         title: "Prep Time",
@@ -354,7 +358,7 @@ struct RecipeDetailView: View {
                         color: .blue
                     )
                     
-                    // Enhanced cook time card
+                    // Cook time card
                     PrepTimeCard(
                         icon: "flame.fill",
                         title: "Cook Time",
@@ -365,43 +369,83 @@ struct RecipeDetailView: View {
                 }
             }
             
-            // Enhanced Start Cooking Button
-            Button(action: {
-                showCookingMode = true
-            }) {
-                HStack(spacing: 12) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 18, weight: .semibold))
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "lightbulb.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.orange)
                     
-                    Text("Start Cooking")
-                        .font(.system(size: 17, weight: .semibold))
+                    Text("Chef's Tips")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.primary)
                     
                     Spacer()
-                    
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 16, weight: .medium))
                 }
-                .foregroundColor(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 18)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color("GhanaGold"), Color("KenteGold")],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .shadow(color: Color("GhanaGold").opacity(0.4), radius: 12, x: 0, y: 6)
-                )
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Fresh ingredients make all the difference in authentic Ghanaian cooking")
+                    Text("• Take your time with the prep - it's the foundation of great flavor")
+                    Text("• Don't rush the cooking process - let the flavors develop naturally")
+                }
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
             }
-            .buttonStyle(ScaleButtonStyle())
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.orange.opacity(0.2), lineWidth: 1)
+                    )
+            )
         }
     }
     
-    // MARK: - Enhanced Ingredients Tab
-    private var enhancedIngredientsTab: some View {
+    private var floatingStartCookingButton: some View {
+        VStack {
+            Spacer()
+            
+            HStack {
+                Spacer()
+                
+                Button(action: {
+                    showCookingMode = true
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                        
+                        Text("Start Cooking")
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color("GhanaGold"), Color("KenteGold")],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .shadow(color: Color("GhanaGold").opacity(0.4), radius: 16, x: 0, y: 8)
+                    )
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .scaleEffect(1.0)
+                .animation(.spring(response: 0.4, dampingFraction: 0.7), value: showCookingMode)
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 34)
+        }
+    }
+
+    
+    // MARK: - Ingredients Tab
+    private var ingredientsTab: some View {
         VStack(alignment: .leading, spacing: 20) {
             // Header
             HStack {
@@ -429,7 +473,7 @@ struct RecipeDetailView: View {
             if !sortedIngredients.isEmpty {
                 LazyVStack(spacing: 12) {
                     ForEach(Array(sortedIngredients.enumerated()), id: \.element) { index, ingredient in
-                        EnhancedIngredientCard(ingredient: ingredient)
+                        IngredientCard(ingredient: ingredient)
                             .transition(.asymmetric(
                                 insertion: .scale(scale: 0.9).combined(with: .opacity),
                                 removal: .scale(scale: 0.9).combined(with: .opacity)
@@ -451,8 +495,8 @@ struct RecipeDetailView: View {
         }
     }
     
-    // MARK: - Enhanced Steps Tab
-    private var enhancedStepsTab: some View {
+    // MARK: - Steps Tab
+    private var stepsTab: some View {
         VStack(alignment: .leading, spacing: 20) {
             // Header
             HStack {
@@ -480,7 +524,7 @@ struct RecipeDetailView: View {
             if !sortedSteps.isEmpty {
                 LazyVStack(spacing: 16) {
                     ForEach(Array(sortedSteps.enumerated()), id: \.element) { index, step in
-                        EnhancedStepCard(step: step, stepNumber: index + 1)
+                        StepCard(step: step, stepNumber: index + 1)
                             .transition(.asymmetric(
                                 insertion: .scale(scale: 0.9).combined(with: .opacity),
                                 removal: .scale(scale: 0.9).combined(with: .opacity)
@@ -536,8 +580,7 @@ struct RecipeDetailView: View {
     }
 }
 
-// MARK: - Enhanced Supporting Components
-
+// MARK: - Supporting Components
 struct CategoryBadge: View {
     let name: String
     let color: Color
@@ -663,7 +706,7 @@ struct PrepTimeCard: View {
     }
 }
 
-struct EnhancedTabButton: View {
+struct TabButton: View {
     let title: String
     let icon: String
     let isActive: Bool
@@ -697,7 +740,7 @@ struct EnhancedTabButton: View {
     }
 }
 
-struct EnhancedIngredientCard: View {
+struct IngredientCard: View {
     let ingredient: Ingredient
     
     var body: some View {
@@ -755,7 +798,7 @@ struct EnhancedIngredientCard: View {
     }
 }
 
-struct EnhancedStepCard: View {
+struct StepCard: View {
     let step: Step
     let stepNumber: Int
     
