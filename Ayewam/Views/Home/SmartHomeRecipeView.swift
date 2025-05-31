@@ -856,22 +856,23 @@ struct SmartHomeRecipeView: View {
                 Spacer()
                 
                 // Refresh button
-                Button(action: {
-                    refreshRecommendations()
-                }) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .frame(width: 32, height: 32)
-                        .background(
-                            Circle()
-                                .fill(.ultraThinMaterial)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                                )
-                        )
-                }
+                //TODO: justynx readd this later
+//                Button(action: {
+//                    refreshRecommendations()
+//                }) {
+//                    Image(systemName: "arrow.clockwise")
+//                        .font(.system(size: 16, weight: .medium))
+//                        .foregroundColor(.secondary)
+//                        .frame(width: 32, height: 32)
+//                        .background(
+//                            Circle()
+//                                .fill(.ultraThinMaterial)
+//                                .overlay(
+//                                    Circle()
+//                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+//                                )
+//                        )
+//                }
             }
             .padding(.horizontal, 24)
             

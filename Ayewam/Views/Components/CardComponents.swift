@@ -73,15 +73,11 @@ struct CuratedCard: View {
                 
                 HStack(spacing: 8) {
                     if let difficulty = recipe.difficulty, !difficulty.isEmpty {
-                        Text(difficulty)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 2)
-                            .background(
-                                Capsule()
-                                    .fill(Color(.systemGray6))
-                            )
+                        MetadataChip(
+                            icon: "speedometer",
+                            text: difficulty,
+                            color: .orange
+                        )
                     }
                     
                     Spacer()
