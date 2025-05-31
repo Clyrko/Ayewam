@@ -114,19 +114,20 @@ struct RecipeCard: View {
     @State private var showShimmer = false
     
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 16) {
             // Recipe image section
             ZStack(alignment: .topTrailing) {
                 if let imageName = recipe.imageName, !imageName.isEmpty {
                     AsyncImageView.asset(imageName)
                         .frame(width: 100, height: 100)
-                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 } else {
                     AsyncImageView.placeholder(
                         color: Color("GhanaGold").opacity(0.3),
                         text: recipe.name
                     )
                     .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
                     .overlay(shimmerOverlay)
                 }
                 
@@ -160,7 +161,6 @@ struct RecipeCard: View {
                     }
                 }
             }
-            .cornerRadius(16, corners: [.topLeft, .bottomLeft])
             
             // Recipe info section
             VStack(alignment: .leading, spacing: 8) {
@@ -234,10 +234,9 @@ struct RecipeCard: View {
                     }
                 }
             }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 12)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(16)
         .frame(minHeight: 100)
         .background(cardBackground)
         .shadow(
