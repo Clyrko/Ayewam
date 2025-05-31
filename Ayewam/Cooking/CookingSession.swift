@@ -75,6 +75,12 @@ class CookingSession: ObservableObject {
         return true
     }
     
+    var nextStep: Step? {
+        guard currentStepIndex < totalSteps - 1 else { return nil }
+        let nextIndex = currentStepIndex + 1
+        return sortedSteps.first { Int($0.orderIndex) == nextIndex }
+    }
+    
     func moveToPreviousStep() -> Bool {
         guard currentStepIndex > 0 else {
             return false

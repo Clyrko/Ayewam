@@ -28,9 +28,6 @@ struct CookingView: View {
                     // Header
                     cookingHeader
                     
-                    // Progress indicator
-                    recipeProgressBar
-                    
                     ScrollView {
                         VStack(alignment: .leading, spacing: 20) {
                             // Current step view
@@ -44,31 +41,43 @@ struct CookingView: View {
                                     timerState: viewModel.activeTimers[Int(currentStep.orderIndex)],
                                     onTimerStart: {
                                         viewModel.startTimer(for: currentStep)
+                                        hapticImpact.impactOccurred(intensity: 0.5)
                                     },
                                     onTimerCancel: {
                                         viewModel.cancelTimer(for: Int(currentStep.orderIndex))
+                                        hapticImpact.impactOccurred(intensity: 0.3)
                                     },
                                     onMarkComplete: {
-                                        withAnimation {
+                                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                                             viewModel.nextStep()
                                         }
                                         hapticImpact.impactOccurred(intensity: 0.8)
                                     }
                                 )
-                                .transition(.opacity)
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                                    removal: .move(edge: .leading).combined(with: .opacity)
+                                ))
                                 .id("step-\(currentStep.orderIndex)")
+                                
+                                if viewModel.session.currentStepIndex < viewModel.session.totalSteps - 1,
+                                   let nextStep = getNextStep() {
+                                    nextStepPreview(nextStep)
+                                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                                }
                             }
                             
                             // Ingredients overlay (conditionally shown)
                             if viewModel.showIngredients {
-                                // Replace with IngredientPanelView
                                 IngredientPanelView(
                                     ingredients: sortedIngredients(from: viewModel.session.recipe.ingredients as? Set<Ingredient> ?? []),
                                     onClose: {
-                                        viewModel.toggleIngredients()
+                                        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                                            viewModel.toggleIngredients()
+                                        }
                                     }
                                 )
-                                .transition(.move(edge: .bottom))
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
                             }
                         }
                         .padding()
@@ -165,6 +174,69 @@ struct CookingView: View {
         }
     }
     
+    private func getNextStep() -> Step? {
+        let nextIndex = viewModel.session.currentStepIndex + 1
+        return viewModel.session.sortedSteps.first { Int($0.orderIndex) == nextIndex }
+    }
+
+    private func nextStepPreview(_ step: Step) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "eye.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color("GhanaGold"))
+                
+                Text("Coming Up Next")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Text("Step \(viewModel.session.currentStepIndex + 2)")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(Color(.systemGray5))
+                    )
+            }
+            
+            Text(step.instruction ?? "No instruction available")
+                .font(.system(size: 15))
+                .foregroundColor(.secondary)
+                .lineLimit(2)
+                .lineSpacing(2)
+            
+            if step.duration > 0 {
+                HStack(spacing: 6) {
+                    Image(systemName: "clock")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color("TimerActive"))
+                    
+                    let minutes = Int(step.duration) / 60
+                    let seconds = Int(step.duration) % 60
+                    let timeString = minutes > 0 ? "\(minutes)m \(seconds)s" : "\(seconds)s"
+                    
+                    Text("Will need \(timeString)")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Color("TimerActive"))
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color("GhanaGold").opacity(0.2), lineWidth: 1)
+                )
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+    }
+    
     // MARK: - Components
     private var cookingHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -172,70 +244,11 @@ struct CookingView: View {
                 .font(.title2)
                 .fontWeight(.bold)
                 .lineLimit(1)
-            
-            if let currentStep = viewModel.session.currentStep {
-                Text("Step \(currentStep.orderIndex + 1) of \(viewModel.session.totalSteps)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(Color(.systemBackground))
     }
-    
-    private var recipeProgressBar: some View {
-        let progress = viewModel.session.progress
-        
-        return VStack(spacing: 0) {
-            // Progress bar
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    // Background
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 8)
-                    
-                    // Progress
-                    Rectangle()
-                        .fill(Color.green)
-                        .frame(width: geometry.size.width * CGFloat(progress), height: 8)
-                        .animation(.spring(), value: progress)
-                }
-                .cornerRadius(4)
-            }
-            .frame(height: 8)
-            .padding(.horizontal)
-            
-            // Step indicators
-            HStack(spacing: 0) {
-                ForEach(0..<viewModel.session.totalSteps, id: \.self) { index in
-                    let isCompleted = viewModel.session.isStepCompleted(index)
-                    let isCurrent = index == viewModel.session.currentStepIndex
-                    
-                    Button(action: {
-                        viewModel.session.jumpToStep(index)
-                        hapticImpact.impactOccurred()
-                    }) {
-                        Circle()
-                            .fill(stepIndicatorColor(isCompleted: isCompleted, isCurrent: isCurrent))
-                            .frame(width: 12, height: 12)
-                            .overlay(
-                                Circle()
-                                    .stroke(isCurrent ? Color.blue : Color.clear, lineWidth: 2)
-                            )
-                            .padding(8)
-                    }
-                    .buttonStyle(ScaleButtonStyle())
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-        }
-    }
-    
-    // We remove the ingredientsPanel computed property since we're replacing it with IngredientPanelView
     
     private var cookingNavigationControls: some View {
         HStack(spacing: 20) {

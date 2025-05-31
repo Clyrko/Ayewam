@@ -11,114 +11,141 @@ struct IngredientPanelView: View {
     let ingredients: [Ingredient]
     let onClose: () -> Void
     
-    @State private var showAllSubstitutions: Bool = false
+    @State private var checkedIngredients: Set<String> = []
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             // Header
             HStack {
-                Text("Ingredients")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Recipe Ingredients")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    Text("\(ingredients.count) ingredients • Tap to check off")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
                 
                 Spacer()
                 
                 Button(action: onClose) {
                     Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 24))
                         .foregroundColor(.secondary)
-                        .font(.title3)
                 }
             }
-            
-            // Ingredient tip
-            tipView
-            
-            // Show all substitutions toggle
-            if hasAnySubstitution {
-                Toggle(isOn: $showAllSubstitutions) {
-                    Text("Show all ingredient info")
-                        .font(.subheadline)
-                }
-                .toggleStyle(SwitchToggleStyle(tint: .blue))
-            }
-            
-            // Divider
-            Rectangle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(height: 1)
-                .padding(.vertical, 8)
             
             // Ingredients list
-            if !ingredients.isEmpty {
-                ForEach(ingredients, id: \.self) { ingredient in
-                    IngredientRow(
-                        ingredient: ingredient,
-                        showInfo: showAllSubstitutions || shouldShowInfo(for: ingredient)
-                    )
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    ForEach(ingredients, id: \.self) { ingredient in
+                        ingredientRow(ingredient)
+                    }
                 }
-            } else {
-                Text("No ingredients available")
-                    .foregroundColor(.secondary)
-                    .italic()
             }
+            .frame(maxHeight: 300)
         }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color("SoupTeal").opacity(0.3), lineWidth: 1)
+                )
+        )
+        .shadow(color: Color.black.opacity(0.1), radius: 12, x: 0, y: 6)
+    }
+    
+    private func ingredientRow(_ ingredient: Ingredient) -> some View {
+        let ingredientId = ingredient.name ?? ""
+        let isChecked = checkedIngredients.contains(ingredientId)
+        
+        return Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                if isChecked {
+                    checkedIngredients.remove(ingredientId)
+                } else {
+                    checkedIngredients.insert(ingredientId)
+                }
+            }
+        }) {
+            HStack(spacing: 12) {
+                // Checkbox
+                ZStack {
+                    Circle()
+                        .fill(isChecked ? Color("SoupTeal") : Color(.systemGray5))
+                        .frame(width: 24, height: 24)
+                    
+                    if isChecked {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+                
+                // Ingredient info
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(formatIngredientQuantity(ingredient))
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(isChecked ? .secondary : .primary)
+                            .strikethrough(isChecked)
+                        
+                        Text(ingredient.name ?? "Unknown")
+                            .font(.system(size: 15))
+                            .foregroundColor(isChecked ? .secondary : .primary)
+                            .strikethrough(isChecked)
+                    }
+                    
+                    if let notes = ingredient.notes, !notes.isEmpty {
+                        Text(notes)
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .italic()
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func formatIngredientQuantity(_ ingredient: Ingredient) -> String {
+        let quantityString: String
+        if ingredient.quantity == 0 {
+            return ""
+        } else if ingredient.quantity.truncatingRemainder(dividingBy: 1) == 0 {
+            quantityString = "\(Int(ingredient.quantity))"
+        } else {
+            quantityString = String(format: "%.1f", ingredient.quantity)
+        }
+        
+        if let unit = ingredient.unit, !unit.isEmpty {
+            return quantityString + " " + unit
+        } else {
+            return quantityString
+        }
+    }
+}
+
+#Preview {
+    let context = PersistenceController.preview.container.viewContext
+    let mockRecipe = MockData.previewRecipe(in: context)
+    let ingredients = Array(mockRecipe.ingredients as? Set<Ingredient> ?? [])
+    
+    ZStack {
+        Color(.systemGroupedBackground)
+            .ignoresSafeArea()
+        
+        IngredientPanelView(
+            ingredients: ingredients,
+            onClose: {}
+        )
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
-        .padding(.top, 16)
-    }
-    
-    private var tipView: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "lightbulb.fill")
-                .foregroundColor(.yellow)
-                .font(.title3)
-            
-            Text("Ghanaian dishes often use fresh ingredients. If an ingredient is unavailable, see our suggestions for substitutions.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.yellow.opacity(0.1))
-        )
-    }
-    
-    private var hasAnySubstitution: Bool {
-        return ingredients.contains { getIngredientInfo($0.name ?? "") != nil }
-    }
-    
-    private func shouldShowInfo(for ingredient: Ingredient) -> Bool {
-        return getIngredientInfo(ingredient.name ?? "") != nil
-    }
-    
-    // This would normally come from a database
-    private func getIngredientInfo(_ name: String) -> String? {
-        let lowerName = name.lowercased()
-        
-        if lowerName.contains("palm oil") {
-            return "Substitute: Red palm oil can be replaced with sunflower oil with a bit of tomato paste for color."
-        } else if lowerName.contains("shito") {
-            return "Info: Shito is a Ghanaian hot pepper sauce made with dried fish, shrimp, and spices."
-        } else if lowerName.contains("garden egg") {
-            return "Substitute: African eggplants (garden eggs) can be replaced with small Italian eggplants."
-        } else if lowerName.contains("kontomire") {
-            return "Info: Kontomire is cocoyam leaves. Substitute with collard greens or spinach."
-        } else if lowerName.contains("fufu") {
-            return "Info: Traditional fufu is made by pounding cassava and plantain. Instant versions are also available."
-        } else if lowerName.contains("kenkey") {
-            return "Info: Kenkey is a fermented corn dough. You can sometimes find it in African markets or make it with masa harina."
-        } else if lowerName.contains("groundnut") || lowerName.contains("peanut") {
-            return "Info: Groundnut paste is a crucial ingredient in many Ghanaian dishes. Unsweetened peanut butter is a good substitute."
-        } else if lowerName.contains("smoked fish") {
-            return "Substitute: If smoked fish is unavailable, use canned smoked herring or mackerel."
-        } else if lowerName.contains("dawadawa") {
-            return "Info: Dawadawa is a fermented locust bean condiment. Miso paste can be used as a substitute though the flavor will differ."
-        }
-        
-        return nil
     }
 }
 
