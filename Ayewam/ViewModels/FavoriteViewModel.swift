@@ -50,7 +50,7 @@ class FavoriteViewModel: ObservableObject {
             try manager.toggleFavorite(recipe)
             loadFavorites()
         } catch {
-            errorMessage = "Failed to update favorite status: \(error.localizedDescription)"
+            ErrorHandler.shared.handleError(error, context: "favorite_toggle")
         }
     }
 }

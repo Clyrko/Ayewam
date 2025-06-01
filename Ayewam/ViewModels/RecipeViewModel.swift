@@ -116,8 +116,7 @@ class RecipeViewModel: ObservableObject {
         do {
             try manager.toggleFavorite(recipe)
         } catch {
-            ErrorHandler.shared.logError(error, identifier: "RecipeViewModel.toggleFavorite")
-            errorMessage = ErrorHandler.shared.userFriendlyMessage(for: error)
+            ErrorHandler.shared.handleError(error, context: "recipe_favorite")
         }
     }
     

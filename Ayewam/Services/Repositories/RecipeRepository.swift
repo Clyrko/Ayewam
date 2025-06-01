@@ -114,15 +114,17 @@ class RecipeRepository {
         request.fetchLimit = 1
         
         do {
-            let results = try context.fetch(request)
-            if let recipe = results.first {
+            let recipes = try context.fetch(request)
+            if let recipe = recipes.first {
                 return .success(recipe)
             } else {
-                return .failure(AyewamError.recipeNotFound)
+                let error = AyewamError.recipeNotFound
+                ErrorHandler.shared.logError(error, identifier: "RecipeRepository.fetchRecipeResult")
+                return .failure(error)
             }
         } catch {
             ErrorHandler.shared.logError(error, identifier: "RecipeRepository.fetchRecipeResult")
-            return .failure(AyewamError.operationFailed(reason: "Failed to fetch recipe"))
+            return .failure(error)
         }
     }
 }

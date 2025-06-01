@@ -28,6 +28,14 @@ enum AyewamError: Error {
     case categoryNotFound
     case invalidRecipeData
     
+    case recipeLoadingFailed
+    case cookingSessionFailed
+    case timerCreationFailed
+    case noInternetConnection
+    case submissionFailed
+    case dailyLimitReached
+    case insufficientStorage
+    
     /// User-friendly description of the error
     var localizedDescription: String {
         switch self {
@@ -57,6 +65,20 @@ enum AyewamError: Error {
             return "Category not found."
         case .invalidRecipeData:
             return "Invalid recipe data."
+        case .recipeLoadingFailed:
+            return "Couldn't load recipe. Please try again."
+        case .cookingSessionFailed:
+            return "There was a problem starting cooking mode."
+        case .timerCreationFailed:
+            return "Unable to set up cooking timer."
+        case .noInternetConnection:
+            return "No internet connection. Please check your network."
+        case .submissionFailed:
+            return "Submission failed. Please try again."
+        case .dailyLimitReached:
+            return "You've reached your daily submission limit."
+        case .insufficientStorage:
+            return "Not enough storage space available."
         }
     }
     
@@ -138,6 +160,48 @@ class ErrorHandler {
     /// Clear all logged errors
     func clearAllErrors() {
         errors.removeAll()
+    }
+    
+    /// Present error with haptic feedback and toast
+    func presentError(_ error: Error, identifier: String) {
+        logError(error, identifier: identifier)
+        
+        Task { @MainActor in
+            // Add haptic feedback
+            HapticFeedbackManager.shared.error()
+            
+            // Show toast notification
+            ToastManager.shared.showError(
+                title: "Error",
+                message: userFriendlyMessage(for: error)
+            )
+        }
+    }
+
+    /// Handle error with context for better user experience
+    func handleError(_ error: Error, context: String, showToast: Bool = true) {
+        let identifier = "\(context)_error"
+        logError(error, identifier: identifier)
+        
+        if showToast {
+            Task { @MainActor in
+                HapticFeedbackManager.shared.error()
+                ToastManager.shared.showError(
+                    title: getContextualTitle(context),
+                    message: userFriendlyMessage(for: error)
+                )
+            }
+        }
+    }
+
+    private func getContextualTitle(_ context: String) -> String {
+        switch context {
+        case "recipe_loading": return "Recipe Error"
+        case "cooking_mode": return "Cooking Error"
+        case "timer": return "Timer Error"
+        case "submission": return "Submission Error"
+        default: return "Error"
+        }
     }
 }
 

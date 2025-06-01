@@ -59,6 +59,7 @@ struct PersistenceController {
         
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
+                ErrorHandler.shared.logError(error, identifier: "PersistenceController.loadPersistentStores")
                 print("Core Data error: \(error), \(error.userInfo)")
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }

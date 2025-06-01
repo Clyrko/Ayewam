@@ -279,7 +279,7 @@ class CookingViewModel: ObservableObject {
             updateLiveActivity()
         }
         
-        print("✅ Timer completed for step \(stepIndex + 1) with enhanced feedback")
+        print("✅ justynx Timer completed for step \(stepIndex + 1) with feedback")
     }
     
     /// Show in-app timer completion notification

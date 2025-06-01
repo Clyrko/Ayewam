@@ -273,13 +273,15 @@ class RecipeSubmissionViewModel: ObservableObject {
     }
     
     private func handleSubmissionError(_ error: RecipeSubmissionError) {
-        errorMessage = error.localizedDescription
+        ErrorHandler.shared.handleError(error, context: "recipe_submission")
+        errorMessage = ErrorHandler.shared.userFriendlyMessage(for: error)
         showErrorAlert = true
     }
     
     private func handleRepositoryError(_ error: RecipeSubmissionError) {
         if !isSubmitting {
-            errorMessage = error.localizedDescription
+            ErrorHandler.shared.handleError(error, context: "recipe_submission", showToast: false)
+            errorMessage = ErrorHandler.shared.userFriendlyMessage(for: error)
             showErrorAlert = true
         }
     }

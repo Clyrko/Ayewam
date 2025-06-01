@@ -20,12 +20,12 @@ class CategoryRepository {
     /// Fetches all categories
     func fetchCategories() -> [Category] {
         let request: NSFetchRequest<Category> = Category.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \Category.name, ascending: true)]
+        request.sortDescriptors = [Constants.Database.categorySortDescriptor]
         
         do {
             return try context.fetch(request)
         } catch {
-            print("Error fetching categories: \(error)")
+            ErrorHandler.shared.handleError(error, context: "category_loading", showToast: false)
             return []
         }
     }
