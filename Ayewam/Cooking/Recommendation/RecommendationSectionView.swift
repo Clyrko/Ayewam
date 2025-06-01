@@ -268,7 +268,7 @@ struct SmartSuggestionCard: View {
             UserDefaults.standard.set(interactions, forKey: "suggestionInteractions")
         }
         
-        // Add to recently viewed (will move to front if already exists)
+        // Add to recently viewed
         UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
     }
 }

@@ -74,6 +74,7 @@ struct RecipeDetailView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
+                    HapticFeedbackManager.shared.recipeFavorited()
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                         toggleFavorite()
                         favoriteScale = 1.3

@@ -119,17 +119,8 @@ class TimerNotificationService: ObservableObject {
         // Custom sound for timer completion
         AudioServicesPlaySystemSound(1007)
         
-        // Haptic feedback
-        let feedbackGenerator = UINotificationFeedbackGenerator()
-        feedbackGenerator.notificationOccurred(.success)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-        }
+        // Haptic feedback with celebration pattern
+        HapticFeedbackManager.shared.timerCompleted()
     }
     
     /// Play warning sound when timer is almost complete
@@ -137,8 +128,7 @@ class TimerNotificationService: ObservableObject {
         // Gentle warning sound
         AudioServicesPlaySystemSound(1013)
         
-        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-        impactFeedback.impactOccurred()
+        HapticFeedbackManager.shared.timerWarning()
     }
     
     // MARK: - Live Activities Integration

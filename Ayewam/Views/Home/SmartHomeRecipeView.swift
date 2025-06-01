@@ -24,6 +24,7 @@ struct SmartHomeRecipeView: View {
     @State private var searchText = ""
     @State private var showingRecipeSubmission = false
     @State private var stableRecommendations: [Recipe] = []
+    @State private var isRefreshing = false
     
     private var timeOfDayIcon: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -54,6 +55,17 @@ struct SmartHomeRecipeView: View {
     }
     
     
+    private var pullToRefreshBinding: Binding<Bool> {
+        Binding(
+            get: { isRefreshing },
+            set: { newValue in
+                if !newValue && isRefreshing {
+                    // Refresh completed
+                    isRefreshing = false
+                }
+            }
+        )
+    }
     
     private var todaysHeroRecipe: Recipe? {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -200,7 +212,35 @@ struct SmartHomeRecipeView: View {
             }
             .padding(.top, 8)
         }
+        .refreshable {
+            await performRefresh()
+        }
         .navigationBarHidden(true)
+        .overlay(
+            // Refresh indicator
+            VStack {
+                if isRefreshing {
+                    HStack(spacing: 12) {
+                        PulsingCircle()
+                            .frame(width: 16, height: 16)
+                        
+                        Text("Refreshing recipes...")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Capsule())
+                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .padding(.top, 8)
+                }
+                
+                Spacer()
+            }
+            .allowsHitTesting(false)
+        )
         //TODO: justynx debugging delete
     #if DEBUG
         .overlay(
@@ -299,6 +339,7 @@ struct SmartHomeRecipeView: View {
                 }
                 .buttonStyle(.plain)
                 .onTapGesture {
+                    HapticFeedbackManager.shared.recipeTapped()
                     if let recipeId = heroRecipe.id {
                         UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
                     }
@@ -790,11 +831,10 @@ struct SmartHomeRecipeView: View {
                         }
                         .buttonStyle(.plain)
                         .onTapGesture {
+                            HapticFeedbackManager.shared.recipeTapped()
                             if let recipeId = recipe.id {
                                 UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
                             }
-                            let impact = UIImpactFeedbackGenerator(style: .medium)
-                            impact.impactOccurred()
                         }
                     }
                 }
@@ -904,6 +944,7 @@ struct SmartHomeRecipeView: View {
                             }
                             .buttonStyle(.plain)
                             .onTapGesture {
+                                HapticFeedbackManager.shared.recipeTapped()
                                 if let recipeId = recipe.id {
                                     UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
                                 }
@@ -934,7 +975,10 @@ struct SmartHomeRecipeView: View {
         }
     }
 
+    // Refresh recommendations
     private func refreshRecommendations() {
+        let newDayRecipe = generateNewHeroRecipe()
+        
         withAnimation(.easeInOut(duration: 0.3)) {
             stableRecommendations = generatePersonalizedRecommendations()
         }
@@ -1028,6 +1072,7 @@ struct SmartHomeRecipeView: View {
                 HStack(spacing: 16) {
                     ForEach(categories, id: \.self) { category in
                         Button(action: {
+                            HapticFeedbackManager.shared.categorySelected()
                             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                                 selectedCategory = (selectedCategory == category) ? nil : category
                             }
@@ -1095,6 +1140,7 @@ struct SmartHomeRecipeView: View {
                         }
                         .buttonStyle(.plain)
                         .onTapGesture {
+                            HapticFeedbackManager.shared.recipeTapped()
                             if let recipeId = recipe.id {
                                 UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
                             }
@@ -1223,6 +1269,7 @@ struct SmartHomeRecipeView: View {
                     }
                     .buttonStyle(.plain)
                     .onTapGesture {
+                        HapticFeedbackManager.shared.recipeTapped()
                         if let recipeId = recipe.id {
                             UserDefaults.standard.addRecentlyViewedRecipe(recipeId)
                         }
@@ -1383,6 +1430,71 @@ struct SmartHomeRecipeView: View {
                 .padding(.horizontal, 24)
             }
         }
+    }
+    
+    /// Performs the refresh operation
+    private func performRefresh() async {
+        await MainActor.run {
+            isRefreshing = true
+        }
+        
+        // Add haptic feedback
+        HapticFeedbackManager.shared.refreshStarted()
+        
+        // Simulate refresh operations
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        
+        await MainActor.run {
+            // Refresh recommendations
+            refreshRecommendations()
+            
+            // Clear and reload stable recommendations
+            stableRecommendations = []
+            loadRecommendations()
+            
+            // Add some visual feedback
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                isRefreshing = false
+            }
+            
+            // Success haptic
+            HapticFeedbackManager.shared.refreshCompleted()
+        }
+    }
+
+    /// Custom refresh indicator overlay
+    private var refreshIndicatorOverlay: some View {
+        VStack {
+            if isRefreshing {
+                HStack(spacing: 12) {
+                    PulsingCircle()
+                        .frame(width: 16, height: 16)
+                    
+                    Text("Refreshing recipes...")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(.ultraThinMaterial)
+                .clipShape(Capsule())
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.top, 8)
+            }
+            
+            Spacer()
+        }
+    }
+
+    /// Generates a new hero recipe (could be random or based on time)
+    private func generateNewHeroRecipe() -> Recipe? {
+        let allRecipes = Array(recipes)
+        guard !allRecipes.isEmpty else { return nil }
+        
+        // Use current time + random factor for variety
+        let timeBasedSeed = Int(Date().timeIntervalSince1970) % allRecipes.count
+        return allRecipes[timeBasedSeed]
     }
 
     // MARK: - Skeleton Components

@@ -15,9 +15,6 @@ struct CookingView: View {
     @State private var showActiveTimers = false
     @State private var showClearAllConfirmation = false
     
-    // Haptic stuff
-    private let hapticImpact = UIImpactFeedbackGenerator(style: .medium)
-    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -42,17 +39,17 @@ struct CookingView: View {
                                     timerState: viewModel.activeTimers[Int(currentStep.orderIndex)],
                                     onTimerStart: {
                                         viewModel.startTimer(for: currentStep)
-                                        hapticImpact.impactOccurred(intensity: 0.5)
+                                        HapticFeedbackManager.shared.timerStarted()
                                     },
                                     onTimerCancel: {
                                         viewModel.cancelTimerWithNotifications(for: Int(currentStep.orderIndex))
-                                        hapticImpact.impactOccurred(intensity: 0.3)
+                                        HapticFeedbackManager.shared.timerCanceled()
                                     },
                                     onMarkComplete: {
                                         withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                                             viewModel.nextStep()
                                         }
-                                        hapticImpact.impactOccurred(intensity: 0.8)
+                                        HapticFeedbackManager.shared.cookingStepCompleted()
                                     }
                                 )
                                 .transition(.asymmetric(
@@ -158,7 +155,7 @@ struct CookingView: View {
                                 activeTimers: viewModel.getActiveTimersList(),
                                 onCancelTimer: { stepIndex in
                                     viewModel.cancelTimer(for: stepIndex)
-                                    hapticImpact.impactOccurred(intensity: 0.3)
+                                    HapticFeedbackManager.shared.timerCanceled()
                                 }
                             )
                             
@@ -196,7 +193,7 @@ struct CookingView: View {
                 Button("Clear All", role: .destructive) {
                     viewModel.cancelAllTimers()
                     showActiveTimers = false
-                    hapticImpact.impactOccurred(intensity: 0.8)
+                    HapticFeedbackManager.shared.heavyImpact()
                 }
             } message: {
                 Text("This will stop all \(viewModel.activeTimers.count) active timers. This action cannot be undone.")
@@ -287,7 +284,7 @@ struct CookingView: View {
                 withAnimation {
                     viewModel.previousStep()
                 }
-                hapticImpact.impactOccurred()
+                HapticFeedbackManager.shared.cookingStepAdvanced()
             }) {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 24, weight: .medium))
@@ -304,7 +301,7 @@ struct CookingView: View {
                 withAnimation {
                     viewModel.nextStep()
                 }
-                hapticImpact.impactOccurred(intensity: 0.8)
+                HapticFeedbackManager.shared.cookingStepAdvanced()
             }) {
                 HStack(spacing: 8) {
                     if viewModel.session.currentStepIndex == viewModel.session.totalSteps - 1 {
@@ -329,7 +326,7 @@ struct CookingView: View {
                 withAnimation {
                     viewModel.nextStep()
                 }
-                hapticImpact.impactOccurred()
+                HapticFeedbackManager.shared.cookingStepAdvanced()
             }) {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 24, weight: .medium))

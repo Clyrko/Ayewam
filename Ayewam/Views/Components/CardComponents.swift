@@ -537,8 +537,7 @@ struct ModernFavoriteCard: View {
             
             // Remove button with haptic feedback
             Button(action: {
-                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                impactFeedback.impactOccurred()
+                HapticFeedbackManager.shared.actionPerformed()
                 
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                     isRemoving = true

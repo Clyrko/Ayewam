@@ -286,9 +286,7 @@ struct EnhancedTimerView: View {
             pulseScale = 1.3
         }
         
-        // Haptic feedback
-        let impactFeedback = UINotificationFeedbackGenerator()
-        impactFeedback.notificationOccurred(.success)
+        HapticFeedbackManager.shared.timerCompleted()
         
         // Reset pulse after celebration
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {

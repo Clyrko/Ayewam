@@ -14,6 +14,7 @@ struct TabBar: View {
         HStack(spacing: 0) {
             ForEach(0..<3) { index in
                 Button(action: {
+                    HapticFeedbackManager.shared.tabSwitched()
                     withAnimation(.easeInOut(duration: 0.2)) {
                         selectedTab = index
                     }

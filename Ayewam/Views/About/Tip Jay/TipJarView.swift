@@ -417,8 +417,7 @@ struct TipOptionCard: View {
     var body: some View {
         Button(action: {
             // Enhanced haptic feedback
-            let impact = UIImpactFeedbackGenerator(style: .medium)
-            impact.impactOccurred()
+            HapticFeedbackManager.shared.actionPerformed()
             
             Task {
                 await tipStore.purchase(product)

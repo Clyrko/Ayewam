@@ -78,8 +78,16 @@ extension View {
     /// Add haptic feedback to a button or tappable view
     func hapticTap(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) -> some View {
         self.onTapGesture {
-            let impact = UIImpactFeedbackGenerator(style: style)
-            impact.impactOccurred()
+            switch style {
+            case .light:
+                HapticFeedbackManager.shared.lightImpact()
+            case .medium:
+                HapticFeedbackManager.shared.mediumImpact()
+            case .heavy:
+                HapticFeedbackManager.shared.heavyImpact()
+            @unknown default:
+                HapticFeedbackManager.shared.mediumImpact()
+            }
         }
     }
     
