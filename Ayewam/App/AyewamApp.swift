@@ -11,6 +11,7 @@ import UserNotifications
 @main
 struct AyewamApp: App {
     let persistenceController = PersistenceController.shared
+    @State private var showLaunchScreen = true
     
     init() {
         // Initialize notification service on app launch
@@ -19,23 +20,38 @@ struct AyewamApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-                    // Check notification permissions when app becomes active
-                    Task {
-                        await TimerNotificationService.shared.checkNotificationPermission()
+            ZStack {
+                if showLaunchScreen {
+                    LaunchScreenView()
+                        .transition(.opacity)
+                } else {
+                    ContentView()
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                        .transition(.opacity)
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                // Check notification permissions when app becomes active
+                Task {
+                    await TimerNotificationService.shared.checkNotificationPermission()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+                // App is going to background - ensure timers are properly scheduled
+                handleAppGoingToBackground()
+            }
+            .onAppear {
+                // Show launch screen, then transition to main content
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation(.easeInOut(duration: 0.8)) {
+                        showLaunchScreen = false
                     }
                 }
-                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
-                    // App is going to background - ensure timers are properly scheduled
-                    handleAppGoingToBackground()
-                }
+            }
         }
     }
     
     // MARK: - Notification Setup
-    
     private func setupNotifications() {
         // Request notification permissions
         TimerNotificationService.shared.requestNotificationPermission()
@@ -46,13 +62,13 @@ struct AyewamApp: App {
         // Set notification delegate for handling notification responses
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
         
-        print("🔔 Notification system initialized")
+        print("🔔 justynx Notification system initialized")
     }
     
     private func handleAppGoingToBackground() {
         // Ensure all active timers have proper notifications scheduled
         // This helps with timer reliability when app is backgrounded
-        print("📱 App going to background - timer notifications verified")
+        print("📱 justynx App going to background - timer notifications verified")
     }
 }
 
@@ -118,8 +134,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     
     private func handleViewRecipeAction(userInfo: [AnyHashable: Any]) {
         // Navigate to the recipe when notification is tapped
-        // This would integrate with your navigation system
-        print("📖 Opening recipe from notification")
+        print("📖 justynx Opening recipe from notification")
         
         // Post notification to switch to recipes tab
         NotificationCenter.default.post(name: .switchToHomeTab, object: nil)
@@ -129,8 +144,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         guard let stepNumber = userInfo["stepNumber"] as? Int else { return }
         
         // Mark step as complete via notification action
-        // This would need integration with your cooking session
-        print("✅ Marking step \(stepNumber) complete from notification")
+        print("✅ justynx Marking step \(stepNumber) complete from notification")
     }
     
     private func handleSnoozeTimerAction(userInfo: [AnyHashable: Any]) {
@@ -142,7 +156,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             await TimerNotificationService.shared.scheduleTimerNotification(
                 stepNumber: stepNumber,
                 stepInstruction: "Snoozed timer",
-                duration: 120, // 2 minutes
+                duration: 120,
                 timerID: "\(timerID)_snooze_\(Date().timeIntervalSince1970)"
             )
         }
@@ -151,7 +165,6 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     }
     
     private func handleDefaultNotificationAction(userInfo: [AnyHashable: Any]) {
-        // Default action when user taps notification
         handleViewRecipeAction(userInfo: userInfo)
     }
 }
