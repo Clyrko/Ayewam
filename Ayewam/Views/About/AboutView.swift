@@ -12,7 +12,8 @@ struct AboutView: View {
                 heroSection
                 
                 // Recipe Submission Card
-                RecipeSubmissionCard(showingSubmissionView: $showingSubmissionView)
+                recipeSubmissionSection
+//                RecipeSubmissionCard(showingSubmissionView: $showingSubmissionView)
                 
                 // About Section
                 aboutContentSection
@@ -140,7 +141,7 @@ struct AboutView: View {
         }
     }
     
-    // MARK: - Feature Highlights
+    // MARK: - About Section
     private var aboutContentSection: some View {
         VStack(alignment: .leading, spacing: 24) {
             // Section header
@@ -245,40 +246,103 @@ struct AboutView: View {
         }
     }
     
-    struct FeatureHighlightCard: View {
-        let icon: String
-        let title: String
-        let description: String
-        let color: Color
-        
-        var body: some View {
-            VStack(alignment: .leading, spacing: 12) {
+    // MARK: - Recipe Submission Card
+    private var recipeSubmissionSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // Section header
+            HStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(color.opacity(0.1))
-                        .frame(width: 40, height: 40)
+                        .fill(Color("GhanaGold").opacity(0.1))
+                        .frame(width: 56, height: 56)
                     
-                    Image(systemName: icon)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(color)
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color("GhanaGold"), Color("KenteGold")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .symbolEffect(.bounce, options: .repeat(.periodic(delay: 4.0)))
                 }
                 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(title)
-                        .headingSmall()
+                    Text("Help Us Grow")
+                        .headingLarge()
                         .foregroundColor(.primary)
+                    
+                    Text("Suggest traditional dishes you love")
+                        .bodyMedium()
+                        .foregroundColor(.secondary)
                 }
+                
+                Spacer()
             }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
-                    .overlay(
+            .padding(.horizontal, 24)
+            
+            // Submission card
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Missing a cherished family recipe? Help preserve Ghana's culinary heritage by sharing dishes you'd love to see in Ayewam.")
+                    .bodyMedium()
+                    .foregroundColor(.primary)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                // Call-to-action button
+                Button(action: {
+                    showingSubmissionView = true
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "paperplane.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                        
+                        Text("Suggest a Recipe")
+                            .labelLarge()
+                        
+                        Spacer()
+                        
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                    .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(color.opacity(0.15), lineWidth: 1)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color("GhanaGold"), Color("KenteGold")],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .shadow(color: Color("GhanaGold").opacity(0.4), radius: 8, x: 0, y: 4)
+                    )
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .accessibilityLabel("Suggest a recipe")
+                .accessibilityHint("Opens form to suggest a traditional Ghanaian recipe")
+            }
+            .padding(24)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color("GhanaGold").opacity(0.2), Color("KenteGold").opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
                     )
             )
-            .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+            .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
+            .padding(.horizontal, 24)
         }
     }
     
@@ -455,142 +519,41 @@ struct AboutView: View {
     }
 }
 
-// MARK: - Recipe Submission Card
-struct RecipeSubmissionCard: View {
-    @Binding var showingSubmissionView: Bool
-    @State private var animateGradient = false
+// MARK: - Feature Highlights
+struct FeatureHighlightCard: View {
+    let icon: String
+    let title: String
+    let description: String
+    let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Header
-            HStack(spacing: 16) {
-                ZStack {
-                    // Animated background circle
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: animateGradient ?
-                                    [Color("GhanaGold").opacity(0.2), Color("KenteGold").opacity(0.3)] :
-                                    [Color("KenteGold").opacity(0.3), Color("GhanaGold").opacity(0.2)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 56, height: 56)
-                        .scaleEffect(animateGradient ? 1.05 : 1.0)
-                        .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: animateGradient)
-                    
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color("GhanaGold"), Color("KenteGold")],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .symbolEffect(.bounce, options: .repeat(.periodic(delay: 3.0)))
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.1))
+                    .frame(width: 40, height: 40)
                 
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Help Us Grow Our Recipe Collection")
-                        .headingLarge()
-                        .foregroundColor(.primary)
-                        .lineLimit(2)
-                    
-                    Text("Suggest traditional dishes you love")
-                        .headingMedium()
-                        .foregroundColor(.secondary)
-            }
-                
-                Spacer()
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(color)
             }
             
-            // Description
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Missing a recipe you cherish? Help us preserve Ghana's rich culinary heritage by suggesting traditional dishes you'd like to see in the app.")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .lineSpacing(2)
-                
-                // Feature highlights
-                VStack(alignment: .leading, spacing: 8) {
-                    FeatureHighlight(
-                        icon: "heart.fill",
-                        text: "Preserve family recipes",
-                        color: .red
-                    )
-                    
-                    FeatureHighlight(
-                        icon: "person.2.fill",
-                        text: "Help the community discover new dishes",
-                        color: .blue
-                    )
-                    
-                    FeatureHighlight(
-                        icon: "bell.fill",
-                        text: "Get notified when your suggestions are added",
-                        color: .orange
-                    )
-                }
-                .padding(.top, 8)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .headingSmall()
+                    .foregroundColor(.primary)
             }
-            
-            // Call-to-action button
-            Button(action: {
-                showingSubmissionView = true
-            }) {
-                HStack(spacing: 12) {
-                    Image(systemName: "paperplane.fill")
-                        .font(.system(size: 16, weight: .semibold))
-                    
-                    Text("Suggest a Recipe")
-                        .font(.system(size: 16, weight: .semibold))
-                    
-                    Spacer()
-                    
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 14, weight: .medium))
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color("GhanaGold"), Color("KenteGold")],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .shadow(color: Color("GhanaGold").opacity(0.4), radius: 8, x: 0, y: 4)
-                )
-            }
-            .buttonStyle(ScaleButtonStyle())
-            .accessibilityLabel("Suggest a recipe")
-            .accessibilityHint("Opens form to suggest a traditional Ghanaian recipe")
         }
-        .padding(24)
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(
-                            LinearGradient(
-                                colors: [Color("GhanaGold").opacity(0.3), Color("KenteGold").opacity(0.2)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(color.opacity(0.15), lineWidth: 1)
                 )
         )
-        .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 6)
-        .onAppear {
-            animateGradient = true
-        }
+        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
     }
 }
 
