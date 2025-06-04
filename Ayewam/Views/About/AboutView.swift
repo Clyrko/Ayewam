@@ -14,8 +14,8 @@ struct AboutView: View {
                 // Recipe Submission Card
                 RecipeSubmissionCard(showingSubmissionView: $showingSubmissionView)
                 
-                // Feature highlights
-                featureHighlights
+                // About Section
+                aboutContentSection
                 
                 // Tip Jar Section
                 tipJarSection
@@ -141,28 +141,144 @@ struct AboutView: View {
     }
     
     // MARK: - Feature Highlights
-    private var featureHighlights: some View {
-        VStack(spacing: 20) {
-            ModernFeatureCard(
-                title: "About Ayewam",
-                description: "Ayewam is your guide to authentic Ghanaian cuisine, offering traditional recipes with step-by-step instructions. Explore the rich culinary heritage of Ghana through our carefully curated collection of dishes.",
-                icon: "info.circle.fill",
-                gradientColors: [.blue, .cyan]
-            )
+    private var aboutContentSection: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            // Section header
+            VStack(alignment: .leading, spacing: 8) {
+                Text("About Ayewam")
+                    .displaySmall()
+                    .foregroundColor(.primary)
+                
+                Text("Your gateway to authentic Ghanaian cuisine")
+                    .bodyLarge()
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 24)
             
-            ModernFeatureCard(
-                title: "Smart Cooking",
-                description: "Experience guided cooking with integrated timers, step-by-step instructions, and personalized recipe recommendations based on your preferences and cooking history.",
-                icon: "brain.head.profile",
-                gradientColors: [.purple, .pink]
+            // Main about card
+            VStack(alignment: .leading, spacing: 20) {
+                // Mission statement
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color("ForestGreen").opacity(0.1))
+                                .frame(width: 50, height: 50)
+                            
+                            Image(systemName: "heart.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(Color("ForestGreen"))
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Our Mission")
+                                .headingMedium()
+                                .foregroundColor(.primary)
+                            
+                            Text("Preserving Ghana's culinary heritage")
+                                .bodySmall()
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                    }
+                    
+                    Text("Ayewam connects you with authentic Ghanaian recipes passed down through generations. From bustling Accra markets to quiet village kitchens, we bring traditional flavors and cooking techniques to your home.")
+                        .bodyMedium()
+                        .foregroundColor(.primary)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                
+                // Feature highlights grid
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12)
+                ], spacing: 16) {
+                    FeatureHighlightCard(
+                        icon: "brain.head.profile",
+                        title: "Smart Cooking",
+                        description: "AI-powered recommendations and guided cooking",
+                        color: Color("GhanaGold")
+                    )
+                    
+                    FeatureHighlightCard(
+                        icon: "timer",
+                        title: "Perfect Timing",
+                        description: "Multi-timer system for complex dishes",
+                        color: Color("TimerActive")
+                    )
+                    
+                    FeatureHighlightCard(
+                        icon: "globe.africa.fill",
+                        title: "Authentic Recipes",
+                        description: "Traditional dishes from all regions",
+                        color: Color("ForestGreen")
+                    )
+                    
+                    FeatureHighlightCard(
+                        icon: "sparkles",
+                        title: "Cultural Context",
+                        description: "Learn the stories behind each dish",
+                        color: Color("WarmRed")
+                    )
+                }
+            }
+            .padding(24)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color("ForestGreen").opacity(0.2), Color("GhanaGold").opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
             )
-            
-            ModernFeatureCard(
-                title: "Ghanaian Cuisine",
-                description: "Discover the rich flavors of Ghana with our collection of traditional stews, soups, and one-pot dishes. Learn about key ingredients like plantains, cassava, yams, and aromatic spices.",
-                icon: "globe.africa.fill",
-                gradientColors: [.green, .mint]
+            .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 6)
+            .padding(.horizontal, 24)
+        }
+    }
+    
+    struct FeatureHighlightCard: View {
+        let icon: String
+        let title: String
+        let description: String
+        let color: Color
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(0.1))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(color)
+                }
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(title)
+                        .headingSmall()
+                        .foregroundColor(.primary)
+                }
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.systemBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(color.opacity(0.15), lineWidth: 1)
+                    )
             )
+            .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
         }
     }
     
