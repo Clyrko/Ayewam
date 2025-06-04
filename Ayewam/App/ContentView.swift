@@ -27,13 +27,13 @@ struct ContentView: View {
                     .tag(1)
 
                 //TODO: justynx dont forget to change
-                NavigationView {
-                    TipJarTestingView()
-                }
-                .tag(2)
+//                NavigationView {
+//                    TipJarTestingView()
+//                }
+//                .tag(2)
                 
-//                NavigationView { AboutView() }
-//                    .tag(2)
+                NavigationView { AboutView() }
+                    .tag(2)
             }
 
             // Tab Bar

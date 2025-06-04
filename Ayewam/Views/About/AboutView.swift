@@ -3,6 +3,7 @@ import SwiftUI
 struct AboutView: View {
     @State private var showCredits = false
     @State private var showingSubmissionView = false
+    @State private var animatingHero = false
     
     var body: some View {
         ScrollView {
@@ -49,63 +50,94 @@ struct AboutView: View {
     
     // MARK: - Hero Section
     private var heroSection: some View {
-        VStack(alignment: .center, spacing: 24) {
+        VStack(alignment: .center, spacing: 28) {
+            // App icon
             ZStack {
                 Circle()
                     .fill(
-                        LinearGradient(
-                            colors: [Color.ghGreen.opacity(0.15), Color.ghYellow.opacity(0.15)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                        RadialGradient(
+                            colors: [
+                                Color("GhanaGold").opacity(0.15),
+                                Color("KenteGold").opacity(0.08),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 30,
+                            endRadius: 80
                         )
                     )
-                    .frame(width: 140, height: 140)
-                    .scaleEffect(1.0)
-                    .animation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true), value: true)
+                    .frame(width: 160, height: 160)
+                    .scaleEffect(animatingHero ? 1.05 : 1.0)
+                    .animation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true), value: animatingHero)
                 
+                // Main icon background
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.ghRed.opacity(0.1), Color.ghYellow.opacity(0.1)],
-                            startPoint: .bottomLeading,
-                            endPoint: .topTrailing
-                        )
-                    )
+                    .fill(.ultraThinMaterial)
                     .frame(width: 120, height: 120)
-                    .scaleEffect(0.9)
-                    .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: true)
+                    .overlay(
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color("GhanaGold").opacity(0.4), Color("KenteGold").opacity(0.2)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 3
+                            )
+                    )
+                    .shadow(color: Color("GhanaGold").opacity(0.2), radius: 12, x: 0, y: 6)
                 
+                // App icon
                 Image(systemName: "book.closed.fill")
-                    .font(.system(size: 52))
+                    .font(.system(size: 48, weight: .semibold))
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [Color.ghGreen, Color.ghYellow, Color.ghRed],
+                            colors: [Color("GhanaGold"), Color("KenteGold"), Color("ForestGreen")],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .symbolEffect(.bounce, options: .repeat(.periodic(delay: 3.0)))
+                    .symbolEffect(.bounce, options: .repeat(.periodic(delay: 4.0)))
+                    .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
             }
             
-            VStack(spacing: 12) {
-                Text("Ayewam")
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.primary, .primary.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
+            // App branding
+            VStack(spacing: 16) {
+                VStack(spacing: 8) {
+                    Text("Ayewam")
+                        .brand()
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.primary, Color("GhanaGold")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
-                    )
+                    
+                    Text("🇬🇭")
+                        .font(.system(size: 32))
+                        .symbolEffect(.pulse, options: .repeat(.periodic(delay: 5.0)))
+                }
                 
-                Text("Authentic Ghanaian Recipes")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
+                VStack(spacing: 4) {
+                    Text("Authentic Ghanaian Recipes")
+                        .headingMedium()
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.center)
+                    
+                    Text("Preserving culinary heritage, one recipe at a time")
+                        .bodyMedium()
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .italic()
+                }
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.bottom, 8)
+        .padding(.vertical, 20)
+        .onAppear {
+            animatingHero = true
+        }
     }
     
     // MARK: - Feature Highlights
