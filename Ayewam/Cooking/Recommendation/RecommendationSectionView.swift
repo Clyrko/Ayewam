@@ -333,7 +333,7 @@ struct ReasoningSheet: View {
                             suggestionFactorRow(icon: "heart", text: "Your favorite recipes")
                             suggestionFactorRow(icon: "chart.line.uptrend.xyaxis", text: "Your cooking progress")
                             //TODO: justynx find a suiting icon
-                            suggestionFactorRow(icon: "globe.africa.fill", text: "Ghanaian cooking traditions")
+                            suggestionFactorRow(icon: "globe", text: "Ghanaian cooking traditions")
                         }
                     }
                     
