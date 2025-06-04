@@ -102,7 +102,7 @@ struct TipJarView: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text("Preserve Our Heritage")
-                        .font(.system(size: 20, weight: .bold))
+                        .headingLarge()
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [Color.primary, Color("GhanaGold")],

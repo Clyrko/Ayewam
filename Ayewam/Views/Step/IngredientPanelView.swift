@@ -19,7 +19,7 @@ struct IngredientPanelView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Recipe Ingredients")
-                        .font(.system(size: 20, weight: .bold))
+                        .headingMedium()
                         .foregroundColor(.primary)
                     
                     Text("\(ingredients.count) ingredients • Tap to check off")

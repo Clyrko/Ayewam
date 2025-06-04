@@ -346,12 +346,12 @@ struct RecipeSubmissionCard: View {
                 
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Help Us Grow Our Recipe Collection")
-                        .font(.system(size: 20, weight: .bold))
+                        .headingLarge()
                         .foregroundColor(.primary)
                         .lineLimit(2)
                     
                     Text("Suggest traditional dishes you love")
-                        .font(.subheadline)
+                        .headingMedium()
                         .foregroundColor(.secondary)
             }
                 

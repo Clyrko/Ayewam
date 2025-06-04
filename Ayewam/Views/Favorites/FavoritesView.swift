@@ -82,11 +82,11 @@ struct FavoritesView: View {
             
             VStack(spacing: 12) {
                 Text("No Favorites Yet")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .displayMedium()
                     .foregroundColor(.primary)
                 
                 Text("Tap the heart icon on any recipe to add it to your favorites")
-                    .font(.system(size: 16))
+                    .displaySmall()
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)

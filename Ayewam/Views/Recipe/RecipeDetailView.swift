@@ -320,7 +320,7 @@ struct RecipeDetailView: View {
                             .foregroundColor(Color("GhanaGold"))
                         
                         Text("About This Dish")
-                            .font(.system(size: 20, weight: .bold))
+                            .headingMedium()
                             .foregroundColor(.primary)
                         
                         Spacer()
@@ -346,7 +346,7 @@ struct RecipeDetailView: View {
             // Preparation info
             VStack(alignment: .leading, spacing: 16) {
                 Text("Preparation Details")
-                    .font(.system(size: 20, weight: .bold))
+                    .headingMedium()
                     .foregroundColor(.primary)
                 
                 HStack(spacing: 16) {

@@ -114,7 +114,7 @@ struct SmartHomeRecipeView: View {
         let index = (dayOfYear - 1) % filteredRecipes.count
         return filteredRecipes[index]
     }
-
+    
     private var heroRecipeSubtitle: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -128,13 +128,13 @@ struct SmartHomeRecipeView: View {
             return "Quick and easy option"
         }
     }
-
+    
     private var todayDayName: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE"
         return formatter.string(from: Date()).uppercased()
     }
-
+    
     private var todayDayNumber: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "d"
@@ -239,10 +239,10 @@ struct SmartHomeRecipeView: View {
                 
                 Spacer()
             }
-            .allowsHitTesting(false)
+                .allowsHitTesting(false)
         )
         //TODO: justynx debugging delete
-    #if DEBUG
+#if DEBUG
         .overlay(
             VStack {
                 HStack {
@@ -262,7 +262,7 @@ struct SmartHomeRecipeView: View {
                 Spacer()
             }
         )
-    #endif
+#endif
         .background(
             LinearGradient(
                 colors: [
@@ -276,20 +276,20 @@ struct SmartHomeRecipeView: View {
             .ignoresSafeArea()
         )
         .onAppear {
-            #if DEBUG
+#if DEBUG
             let count = try? viewContext.count(for: Recipe.fetchRequest())
             print("📊 Recipe count: \(count ?? 0)")
             
             let version = UserDefaults.standard.string(forKey: "lastSeededVersion") ?? "none"
             print("📱 Last seeded version: \(version)")
-            #endif
+#endif
         }
         .toast(position: .top)
         .sheet(isPresented: $showingRecipeSubmission) {
             RecipeSubmissionView(prefilledRecipeName: searchText.trimmingCharacters(in: .whitespacesAndNewlines))
         }
     }
-
+    
     // MARK: - Recipe of the Day Hero
     private var recipeOfTheDayHero: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -297,11 +297,11 @@ struct SmartHomeRecipeView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Recipe of the Day")
-                        .font(.system(size: 24, weight: .bold))
+                        .displaySmall()
                         .foregroundColor(.primary)
                     
                     Text(heroRecipeSubtitle)
-                        .font(.subheadline)
+                        .bodyMedium()
                         .foregroundColor(.secondary)
                 }
                 
@@ -310,11 +310,11 @@ struct SmartHomeRecipeView: View {
                 // Day indicator
                 VStack {
                     Text(todayDayName)
-                        .font(.system(size: 12, weight: .semibold))
+                        .labelSmall()
                         .foregroundColor(Color("GhanaGold"))
                     
                     Text(todayDayNumber)
-                        .font(.system(size: 20, weight: .bold))
+                        .headingLarge()
                         .foregroundColor(Color("GhanaGold"))
                 }
                 .padding(.horizontal, 12)
@@ -537,7 +537,7 @@ struct SmartHomeRecipeView: View {
         
         var body: some View {
             Text(name)
-                .font(.system(size: 12, weight: .semibold))
+                .badgeText()
                 .foregroundColor(.white)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
@@ -548,7 +548,7 @@ struct SmartHomeRecipeView: View {
                 )
         }
     }
-
+    
     struct DifficultyBadge: View {
         let difficulty: String
         
@@ -557,7 +557,7 @@ struct SmartHomeRecipeView: View {
                 Image(systemName: "speedometer")
                     .font(.system(size: 10))
                 Text(difficulty)
-                    .font(.system(size: 12, weight: .semibold))
+                    .badgeText()
             }
             .foregroundColor(.white)
             .padding(.horizontal, 8)
@@ -572,7 +572,7 @@ struct SmartHomeRecipeView: View {
             )
         }
     }
-
+    
     struct MetadataItem: View {
         let icon: String
         let value: String
@@ -611,7 +611,7 @@ struct SmartHomeRecipeView: View {
                 // Twi greeting with cultural context
                 VStack(alignment: .leading, spacing: 4) {
                     Text(timeBasedTwiGreeting)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .cultural()
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [.primary, Color("GhanaGold")],
@@ -623,8 +623,7 @@ struct SmartHomeRecipeView: View {
                 
                 // Cultural context subtitle
                 Text(culturalContextSubtitle)
-                    .font(.title3)
-                    .fontWeight(.medium)
+                    .bodyLarge()
                     .foregroundColor(.secondary)
             }
             
@@ -665,7 +664,7 @@ struct SmartHomeRecipeView: View {
         .padding(.top, 12)
         .padding(.bottom, 8)
     }
-
+    
     // MARK: - Computed Properties
     private var timeBasedTwiGreeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -678,7 +677,7 @@ struct SmartHomeRecipeView: View {
             return "Maadwo!"
         }
     }
-
+    
     private var culturalContextSubtitle: String {
         let hour = Calendar.current.component(.hour, from: Date())
         let isWeekend = Calendar.current.isDateInWeekend(Date())
@@ -686,16 +685,16 @@ struct SmartHomeRecipeView: View {
         switch hour {
         case 5...11:
             return isWeekend ?
-                "Perfect for tea bread or bofrot" :
-                "Ready for koko or porridge?"
+            "Perfect for tea bread or bofrot" :
+            "Ready for koko or porridge?"
         case 12...17:
             return isWeekend ?
-                "Time for jollof or waakye" :
-                "What delicious dish awaits?"
+            "Time for jollof or waakye" :
+            "What delicious dish awaits?"
         default:
             return isWeekend ?
-                "Evening soup and fufu time" :
-                "Perfect for a warm meal"
+            "Evening soup and fufu time" :
+            "Perfect for a warm meal"
         }
     }
     
@@ -711,7 +710,7 @@ struct SmartHomeRecipeView: View {
                 
                 TextField("Search recipes...", text: $searchText)
                     .textFieldStyle(PlainTextFieldStyle())
-                    .font(.system(size: 16))
+                    .bodyMedium()
                     .submitLabel(.search)
                 
                 if !searchText.isEmpty {
@@ -736,7 +735,7 @@ struct SmartHomeRecipeView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(
                                 searchText.isEmpty ?
-                                    Color.gray.opacity(0.2) :
+                                Color.gray.opacity(0.2) :
                                     Color("GhanaGold").opacity(0.4),
                                 lineWidth: 1.5
                             )
@@ -745,7 +744,7 @@ struct SmartHomeRecipeView: View {
             )
             .shadow(
                 color: searchText.isEmpty ?
-                    Color.black.opacity(0.05) :
+                Color.black.opacity(0.05) :
                     Color("GhanaGold").opacity(0.1),
                 radius: searchText.isEmpty ? 2 : 4,
                 x: 0,
@@ -781,11 +780,11 @@ struct SmartHomeRecipeView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Search Results")
-                        .font(.system(size: 24, weight: .bold))
+                        .displaySmall()
                         .foregroundColor(.primary)
                     
                     Text("Found \(searchResults.count) recipe\(searchResults.count == 1 ? "" : "s") for \"\(searchText.trimmingCharacters(in: .whitespacesAndNewlines))\"")
-                        .font(.subheadline)
+                        .bodyMedium()
                         .foregroundColor(.secondary)
                 }
                 
@@ -801,7 +800,7 @@ struct SmartHomeRecipeView: View {
                         Image(systemName: "xmark")
                             .font(.system(size: 12, weight: .medium))
                         Text("Clear")
-                            .font(.system(size: 14, weight: .medium))
+                            .labelMedium() 
                     }
                     .foregroundColor(.secondary)
                     .padding(.horizontal, 12)
@@ -843,7 +842,7 @@ struct SmartHomeRecipeView: View {
             }
         }
     }
-
+    
     private var searchResults: [Recipe] {
         let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedSearch.isEmpty else { return [] }
@@ -854,7 +853,7 @@ struct SmartHomeRecipeView: View {
             return nameMatch || descMatch
         }
     }
-
+    
     // Search Empty State
     private var searchEmptyState: some View {
         VStack(spacing: 24) {
@@ -897,22 +896,22 @@ struct SmartHomeRecipeView: View {
                 
                 // Refresh button
                 //TODO: justynx readd this later
-//                Button(action: {
-//                    refreshRecommendations()
-//                }) {
-//                    Image(systemName: "arrow.clockwise")
-//                        .font(.system(size: 16, weight: .medium))
-//                        .foregroundColor(.secondary)
-//                        .frame(width: 32, height: 32)
-//                        .background(
-//                            Circle()
-//                                .fill(.ultraThinMaterial)
-//                                .overlay(
-//                                    Circle()
-//                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
-//                                )
-//                        )
-//                }
+                //                Button(action: {
+                //                    refreshRecommendations()
+                //                }) {
+                //                    Image(systemName: "arrow.clockwise")
+                //                        .font(.system(size: 16, weight: .medium))
+                //                        .foregroundColor(.secondary)
+                //                        .frame(width: 32, height: 32)
+                //                        .background(
+                //                            Circle()
+                //                                .fill(.ultraThinMaterial)
+                //                                .overlay(
+                //                                    Circle()
+                //                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                //                                )
+                //                        )
+                //                }
             }
             .padding(.horizontal, 24)
             
@@ -974,7 +973,7 @@ struct SmartHomeRecipeView: View {
             }
         }
     }
-
+    
     // Refresh recommendations
     private func refreshRecommendations() {
         let newDayRecipe = generateNewHeroRecipe()
@@ -983,7 +982,7 @@ struct SmartHomeRecipeView: View {
             stableRecommendations = generatePersonalizedRecommendations()
         }
     }
-
+    
     private func generatePersonalizedRecommendations() -> [Recipe] {
         let recentlyViewed = UserDefaults.standard.stringArray(forKey: "recentlyViewedRecipes") ?? []
         let allRecipes = Array(recipes)
@@ -1017,7 +1016,7 @@ struct SmartHomeRecipeView: View {
         
         return Array(behaviorBasedRecipes.prefix(5))
     }
-
+    
     private var recommendationsSubtitle: String {
         let recentlyViewed = UserDefaults.standard.stringArray(forKey: "recentlyViewedRecipes") ?? []
         return recentlyViewed.isEmpty ? "Discover something new" : "Based on your cooking history"
@@ -1152,7 +1151,7 @@ struct SmartHomeRecipeView: View {
             }
         }
     }
-
+    
     private var filteredRecipes: [Recipe] {
         if let selectedCategory = selectedCategory {
             return recipes.filter { recipe in
@@ -1161,21 +1160,21 @@ struct SmartHomeRecipeView: View {
         }
         return Array(recipes)
     }
-
+    
     private var recipeSectionTitle: String {
         if let selectedCategory = selectedCategory {
             return selectedCategory.name ?? "Recipes"
         }
         return "All Recipes"
     }
-
+    
     private var categorySubtitle: String {
         if selectedCategory != nil {
             return "Tap to filter recipes"
         }
         return "Explore Ghanaian cuisine"
     }
-
+    
     private var categoryColor: Color {
         guard let selectedCategory = selectedCategory else { return Color("GhanaGold") }
         
@@ -1200,7 +1199,7 @@ struct SmartHomeRecipeView: View {
             return Color("GhanaGold")
         }
     }
-
+    
     private var categoryEmptyState: some View {
         VStack(spacing: 20) {
             Image(systemName: getCategoryIcon(selectedCategory?.name))
@@ -1220,7 +1219,7 @@ struct SmartHomeRecipeView: View {
         .padding(.vertical, 60)
         .padding(.horizontal, 24)
     }
-
+    
     private func getCategoryIcon(_ categoryName: String?) -> String {
         switch categoryName?.lowercased() {
         case "soups":
@@ -1243,7 +1242,7 @@ struct SmartHomeRecipeView: View {
             return "fork.knife"
         }
     }
-
+    
     // MARK: - All Recipes Section
     private var allRecipesSection: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -1397,7 +1396,7 @@ struct SmartHomeRecipeView: View {
             }
         }
     }
-
+    
     private var categoriesLoadingState: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
@@ -1461,7 +1460,7 @@ struct SmartHomeRecipeView: View {
             HapticFeedbackManager.shared.refreshCompleted()
         }
     }
-
+    
     /// Custom refresh indicator overlay
     private var refreshIndicatorOverlay: some View {
         VStack {
@@ -1486,7 +1485,7 @@ struct SmartHomeRecipeView: View {
             Spacer()
         }
     }
-
+    
     /// Generates a new hero recipe (could be random or based on time)
     private func generateNewHeroRecipe() -> Recipe? {
         let allRecipes = Array(recipes)
@@ -1496,7 +1495,7 @@ struct SmartHomeRecipeView: View {
         let timeBasedSeed = Int(Date().timeIntervalSince1970) % allRecipes.count
         return allRecipes[timeBasedSeed]
     }
-
+    
     // MARK: - Skeleton Components
     struct RecommendationCardSkeleton: View {
         @State private var isShimmering = false
@@ -1523,7 +1522,7 @@ struct SmartHomeRecipeView: View {
             .clipShape(RoundedRectangle(cornerRadius: 24))
         }
     }
-
+    
     struct CategoryCardSkeleton: View {
         @State private var isShimmering = false
         

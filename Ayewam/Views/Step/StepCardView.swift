@@ -134,7 +134,7 @@ struct StepCardView: View {
                     Group {
                         if isCompleted {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 20, weight: .bold))
+                                .headingMedium()
                                 .foregroundColor(.white)
                                 .scaleEffect(animateCompletion ? 1.2 : 1.0)
                                 .animation(.spring(response: 0.4, dampingFraction: 0.6), value: animateCompletion)

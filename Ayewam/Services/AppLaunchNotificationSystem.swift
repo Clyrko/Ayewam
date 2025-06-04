@@ -318,7 +318,7 @@ struct AppLaunchNotificationView: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(notification.title)
-                        .font(.system(size: 20, weight: .bold))
+                        .headingMedium()
                         .foregroundColor(.primary)
                         .lineLimit(2)
                     

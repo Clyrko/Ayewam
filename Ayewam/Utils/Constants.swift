@@ -11,7 +11,28 @@ import SwiftUI
 
 /// Namespace for app-wide constants
 enum Constants {
-    /// UI-related dimensions and values (no changes needed here)
+    
+    // MARK: - Typography (NEW - Centralized)
+    /// Typography system integration
+    enum Typography {
+        static let heroTitle = Ayewam.Typography.displayLarge
+        static let sectionTitle = Ayewam.Typography.displaySmall
+        static let cardTitle = Ayewam.Typography.headingMedium
+        static let bodyText = Ayewam.Typography.bodyMedium
+        static let buttonText = Ayewam.Typography.labelLarge
+        static let metadata = Ayewam.Typography.caption
+        static let timer = Ayewam.Typography.timerLarge
+        static let cultural = Ayewam.Typography.cultural
+        
+        static func adaptiveSize(for baseSize: CGFloat) -> CGFloat {
+            if AccessibilityTypography.prefersLargerText {
+                return baseSize * 1.2
+            }
+            return baseSize
+        }
+    }
+    
+    /// UI-related dimensions and values
     enum UI {
         // Common dimensions
         static let standardPadding: CGFloat = 16
@@ -42,10 +63,15 @@ enum Constants {
         static let gridItemSpacing: CGFloat = 16
         
         // Icon sizes
-        static let smallIconSize: CGFloat = 16
-        static let standardIconSize: CGFloat = 24
-        static let largeIconSize: CGFloat = 32
-        static let extraLargeIconSize: CGFloat = 60
+        static var smallIconSize: CGFloat { Typography.adaptiveSize(for: 16) }
+        static var standardIconSize: CGFloat { Typography.adaptiveSize(for: 24) }
+        static var largeIconSize: CGFloat { Typography.adaptiveSize(for: 32) }
+        static var extraLargeIconSize: CGFloat { Typography.adaptiveSize(for: 60) }
+        
+        // Touch targets
+        static let minimumTouchTarget: CGFloat = AccessibilityTypography.minimumTouchTarget
+        static let comfortableTouchTarget: CGFloat = 48
+        static let largeTouchTarget: CGFloat = 56
         
         // Recipe Submission UI
         static let submissionCardCornerRadius: CGFloat = 24
@@ -169,9 +195,9 @@ enum Constants {
         }
     }
     
-    /// Asset names and resource identifiers (no changes needed here)
+    /// Asset names and resource identifiers
     enum Assets {
-        // Icon names
+        // Icon names (UPDATED - More semantic)
         static let recipeTabIcon = "book"
         static let categoriesTabIcon = "square.grid.2x2"
         static let favoritesTabIcon = "heart"
@@ -204,7 +230,7 @@ enum Constants {
         static let notificationIcon = "bell.fill"
     }
     
-    /// CoreData related constants (no changes needed here)
+    /// CoreData related constants
     enum Database {
         // Entity names
         static let recipeEntity = "Recipe"
@@ -219,7 +245,7 @@ enum Constants {
         static let stepSortDescriptor = NSSortDescriptor(keyPath: \Step.orderIndex, ascending: true)
     }
     
-    /// Timing and animation-related constants (no changes needed here)
+    /// Timing and animation-related constants
     enum Timing {
         // Debounce durations
         static let searchDebounce: Double = 0.3
