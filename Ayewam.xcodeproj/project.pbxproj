@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		692DF4A12DF1DE9A00912DFC /* Configuration.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 692DF4A02DF1DE9800912DFC /* Configuration.storekit */; };
 		695694AF2DDE082400D94B9C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 695694AE2DDE082400D94B9C /* WidgetKit.framework */; };
 		695694B12DDE082400D94B9C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 695694B02DDE082400D94B9C /* SwiftUI.framework */; };
 		695694C22DDE082500D94B9C /* AyewamWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 695694AC2DDE082400D94B9C /* AyewamWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		69CEAEF92DF1DD480012B04E /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69CEAEF82DF1DD480012B04E /* StoreKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,12 +53,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		692DF4A02DF1DE9800912DFC /* Configuration.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Configuration.storekit; sourceTree = "<group>"; };
 		695693F72DDCC82D00D94B9C /* Ayewam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ayewam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6956940E2DDCC82F00D94B9C /* AyewamTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AyewamTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		695694182DDCC82F00D94B9C /* AyewamUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AyewamUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		695694AC2DDE082400D94B9C /* AyewamWidgetExtensionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AyewamWidgetExtensionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		695694AE2DDE082400D94B9C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		695694B02DDE082400D94B9C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		69CEAEF82DF1DD480012B04E /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -122,6 +126,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				69CEAEF92DF1DD480012B04E /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -154,6 +159,7 @@
 		695693EE2DDCC82D00D94B9C = {
 			isa = PBXGroup;
 			children = (
+				692DF4A02DF1DE9800912DFC /* Configuration.storekit */,
 				695693F92DDCC82D00D94B9C /* Ayewam */,
 				695694112DDCC82F00D94B9C /* AyewamTests */,
 				6956941B2DDCC82F00D94B9C /* AyewamUITests */,
@@ -177,6 +183,7 @@
 		695694AD2DDE082400D94B9C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				69CEAEF82DF1DD480012B04E /* StoreKit.framework */,
 				695694AE2DDE082400D94B9C /* WidgetKit.framework */,
 				695694B02DDE082400D94B9C /* SwiftUI.framework */,
 			);
@@ -332,6 +339,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				692DF4A12DF1DE9A00912DFC /* Configuration.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

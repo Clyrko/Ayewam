@@ -242,27 +242,27 @@ struct SmartHomeRecipeView: View {
                 .allowsHitTesting(false)
         )
         //TODO: justynx debugging delete
-#if DEBUG
-        .overlay(
-            VStack {
-                HStack {
-                    Spacer()
-                    Button("🔄") {
-                        let seeder = RecipeSeeder(context: viewContext)
-                        UserDefaults.standard.removeObject(forKey: "lastSeededVersion")
-                        seeder.seedDefaultRecipesIfNeeded()
-                        print("🌱 Debug: Re-seeded recipes")
-                    }
-                    .padding()
-                    .background(Color.red.opacity(0.7))
-                    .foregroundColor(.white)
-                    .clipShape(Circle())
-                }
-                .padding()
-                Spacer()
-            }
-        )
-#endif
+//#if DEBUG
+//        .overlay(
+//            VStack {
+//                HStack {
+//                    Spacer()
+//                    Button("🔄") {
+//                        let seeder = RecipeSeeder(context: viewContext)
+//                        UserDefaults.standard.removeObject(forKey: "lastSeededVersion")
+//                        seeder.seedDefaultRecipesIfNeeded()
+//                        print("🌱 Debug: Re-seeded recipes")
+//                    }
+//                    .padding()
+//                    .background(Color.red.opacity(0.7))
+//                    .foregroundColor(.white)
+//                    .clipShape(Circle())
+//                }
+//                .padding()
+//                Spacer()
+//            }
+//        )
+//#endif
         .background(
             LinearGradient(
                 colors: [
@@ -276,13 +276,13 @@ struct SmartHomeRecipeView: View {
             .ignoresSafeArea()
         )
         .onAppear {
-#if DEBUG
-            let count = try? viewContext.count(for: Recipe.fetchRequest())
-            print("📊 Recipe count: \(count ?? 0)")
-            
-            let version = UserDefaults.standard.string(forKey: "lastSeededVersion") ?? "none"
-            print("📱 Last seeded version: \(version)")
-#endif
+//#if DEBUG
+//            let count = try? viewContext.count(for: Recipe.fetchRequest())
+//            print("📊 Recipe count: \(count ?? 0)")
+//            
+//            let version = UserDefaults.standard.string(forKey: "lastSeededVersion") ?? "none"
+//            print("📱 Last seeded version: \(version)")
+//#endif
         }
         .toast(position: .top)
         .sheet(isPresented: $showingRecipeSubmission) {

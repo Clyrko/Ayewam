@@ -43,16 +43,12 @@ struct PersistenceController {
             )
             
             // Use development environment for initial schema creation
-#if DEBUG
-            // Disable CloudKit sync during development
-            description.cloudKitContainerOptions = nil
+#if DEBUG || true  // Disable CloudKit for V1 release
+    // CloudKit disabled - all data stays local
+    description.cloudKitContainerOptions = nil
 #else
-            description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
-                containerIdentifier: "iCloud.ByteGenius.Ayewam"
-            )
+    description.cloudKitContainerOptions = options
 #endif
-            
-            description.cloudKitContainerOptions = options
         }
         
         let containerRef = container

@@ -67,12 +67,11 @@ class TipStore: ObservableObject {
             let storeProducts = try await Product.products(for: productIDs)
             
             await MainActor.run {
-                // Sort products by price (ascending)
                 self.products = storeProducts.sorted { $0.price < $1.price }
                 self.isAvailable = !self.products.isEmpty
                 self.isLoadingProducts = false
                 
-                print("🍲 TipStore: Loaded \(self.products.count) tip products")
+                print("🍲 justynx TipStore: Loaded \(self.products.count) tip products")
             }
             
         } catch {
@@ -365,10 +364,17 @@ extension Product {
 
 #if DEBUG
 extension TipStore {
-    static func mock() -> TipStore {
+    static func mockForPreviews() -> TipStore {
         let store = TipStore()
-        //TODO: justynx Mock products would be created here for previews
+        // In debug mode, StoreKit Testing will handle products
         return store
+    }
+    
+    func addMockProducts() {
+        // This will use StoreKit Configuration file in debug builds
+        Task {
+            await self.loadProducts()
+        }
     }
 }
 #endif

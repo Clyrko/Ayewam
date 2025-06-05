@@ -1,0 +1,77 @@
+{
+  "identifier" : "ByteGenius.Ayewam",
+  "nonRenewingSubscriptions" : [ ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "tip_small",
+      "localizations" : [
+        {
+          "description" : "Buy me a koko - A small gesture of appreciation",
+          "displayName" : "Buy me a koko",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "ayewam.tip.small",
+      "referenceName" : "Small Tip",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "tip_medium",
+      "localizations" : [
+        {
+          "description" : "Fuel recipe research - Support discovering new recipes",
+          "displayName" : "Fuel recipe research",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "ayewam.tip.medium",
+      "referenceName" : "Medium Tip",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "tip_large",
+      "localizations" : [
+        {
+          "description" : "Support the mission - Help preserve culinary heritage",
+          "displayName" : "Support the mission",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "ayewam.tip.large",
+      "referenceName" : "Large Tip",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "tip_huge",
+      "localizations" : [
+        {
+          "description" : "Champion of culture - Become a guardian of traditions",
+          "displayName" : "Champion of culture",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "ayewam.tip.huge",
+      "referenceName" : "Huge Tip",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_renewalBillingIssuesEnabled" : false,
+    "_storeKitErrors" : [ ]
+  },
+  "subscriptionGroups" : [ ],
+  "version" : {
+    "major" : 1,
+    "minor" : 0
+  }
+}
