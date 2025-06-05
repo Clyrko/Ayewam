@@ -197,6 +197,12 @@ enum RecipeSubmissionError: LocalizedError {
     case permissionDenied
     case unknownError(Error)
     
+    // NEW: Email-specific cases
+    case emailNotConfigured
+    case emailPresentationFailed
+    case emailSendFailed
+    case userCancelled
+    
     var errorDescription: String? {
         switch self {
         case .recipeNameTooShort:
@@ -221,23 +227,16 @@ enum RecipeSubmissionError: LocalizedError {
             return "Permission denied. Please check your iCloud settings."
         case .unknownError(let error):
             return "An unexpected error occurred: \(error.localizedDescription)"
-        }
-    }
-    
-    var recoverySuggestion: String? {
-        switch self {
-        case .userNotAuthenticated:
-            return "Go to Settings > [Your Name] > iCloud and make sure you're signed in."
-        case .networkError:
-            return "Check your internet connection and try again."
-        case .cloudKitNotAvailable:
-            return "This feature requires iCloud. Please try again in a few moments."
-        case .quotaExceeded:
-            return "You can submit more suggestions tomorrow."
-        case .permissionDenied:
-            return "Check your iCloud settings in the Settings app."
-        default:
-            return "Please try again or contact support if the problem persists."
+            
+        // NEW: Email error descriptions
+        case .emailNotConfigured:
+            return "Email is not configured on this device. Please set up Mail app and try again."
+        case .emailPresentationFailed:
+            return "Could not open email composer."
+        case .emailSendFailed:
+            return "Failed to send email. Please try again."
+        case .userCancelled:
+            return "Operation cancelled by user."
         }
     }
 }

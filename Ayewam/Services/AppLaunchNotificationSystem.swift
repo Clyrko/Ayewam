@@ -107,7 +107,7 @@ class AppLaunchNotificationManager: ObservableObject {
         await checkVersionBasedNotifications()
         
         // Check for approved recipe notifications
-        await checkApprovedRecipeNotifications()
+//        await checkApprovedRecipeNotifications()
         
         // Show pending notifications
         showNextNotification()
@@ -241,40 +241,41 @@ class AppLaunchNotificationManager: ObservableObject {
         }
     }
     
-    private func checkApprovedRecipeNotifications() async {
-        let lastCheckDate = UserDefaults.standard.object(forKey: UserDefaultsKeys.lastNotificationCheck) as? Date ?? Date.distantPast
-        
-        do {
-            // Fetch approved submissions since last check
-            let approvedSubmissions = try await repository.fetchApprovedSubmissions(since: lastCheckDate)
-            
-            if !approvedSubmissions.isEmpty {
-                print("🔔 Found \(approvedSubmissions.count) newly approved recipes")
-                
-                // Group by user if needed, but for now create one notification per approval
-                for submission in approvedSubmissions {
-                    let approvedRecipe = ApprovedRecipeInfo(from: submission)
-                    
-                    let notification = AppLaunchNotification(
-                        type: .recipeApproval,
-                        title: "Your Recipe Suggestion Was Added! 🎉",
-                        message: "We've added \"\(submission.recipeName)\" to the app based on your suggestion. Thank you for helping preserve Ghanaian culinary traditions!",
-                        actionText: "View Recipe",
-                        actionType: .viewRecipes,
-                        approvedRecipes: [approvedRecipe]
-                    )
-                    
-                    addNotification(notification)
-                }
-            }
-            
-            // Update last check date
-            UserDefaults.standard.set(Date(), forKey: UserDefaultsKeys.lastNotificationCheck)
-            
-        } catch {
-            print("🔔 Failed to check for approved recipes: \(error)")
-        }
-    }
+    //TODO: justynx icloudkit v2
+//    private func checkApprovedRecipeNotifications() async {
+//        let lastCheckDate = UserDefaults.standard.object(forKey: UserDefaultsKeys.lastNotificationCheck) as? Date ?? Date.distantPast
+//        
+//        do {
+//            // Fetch approved submissions since last check
+//            let approvedSubmissions = try await repository.fetchApprovedSubmissions(since: lastCheckDate)
+//            
+//            if !approvedSubmissions.isEmpty {
+//                print("🔔 Found \(approvedSubmissions.count) newly approved recipes")
+//                
+//                // Group by user if needed, but for now create one notification per approval
+//                for submission in approvedSubmissions {
+//                    let approvedRecipe = ApprovedRecipeInfo(from: submission)
+//                    
+//                    let notification = AppLaunchNotification(
+//                        type: .recipeApproval,
+//                        title: "Your Recipe Suggestion Was Added! 🎉",
+//                        message: "We've added \"\(submission.recipeName)\" to the app based on your suggestion. Thank you for helping preserve Ghanaian culinary traditions!",
+//                        actionText: "View Recipe",
+//                        actionType: .viewRecipes,
+//                        approvedRecipes: [approvedRecipe]
+//                    )
+//                    
+//                    addNotification(notification)
+//                }
+//            }
+//            
+//            // Update last check date
+//            UserDefaults.standard.set(Date(), forKey: UserDefaultsKeys.lastNotificationCheck)
+//            
+//        } catch {
+//            print("🔔 Failed to check for approved recipes: \(error)")
+//        }
+//    }
     
     private func addNotification(_ notification: AppLaunchNotification) {
         pendingNotifications.append(notification)

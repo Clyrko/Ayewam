@@ -18,7 +18,7 @@
 	<string>Production</string>
 	<key>com.apple.developer.in-app-payments</key>
 	<array>
-		<string>$(CFBundleIdentifier)</string>
+		<string>merchant.bytegenius.ayewam</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
