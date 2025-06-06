@@ -25,6 +25,7 @@ struct SmartHomeRecipeView: View {
     @State private var showingRecipeSubmission = false
     @State private var stableRecommendations: [Recipe] = []
     @State private var isRefreshing = false
+    private let isSearchEnabled = false
     
     private var timeOfDayIcon: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -155,10 +156,12 @@ struct SmartHomeRecipeView: View {
                 greetingSection
                 
                 // Search bar
-                searchSection
-                    .padding(.top, 16)
+                if isSearchEnabled {
+                    searchSection
+                        .padding(.top, 16)
+                }
                 
-                if isSearching {
+                if isSearching && isSearchEnabled {
                     // SEARCH MODE: Only show search results
                     if searchResults.isEmpty {
                         searchResultsSection
@@ -242,27 +245,27 @@ struct SmartHomeRecipeView: View {
                 .allowsHitTesting(false)
         )
         //TODO: justynx debugging delete
-//#if DEBUG
-//        .overlay(
-//            VStack {
-//                HStack {
-//                    Spacer()
-//                    Button("🔄") {
-//                        let seeder = RecipeSeeder(context: viewContext)
-//                        UserDefaults.standard.removeObject(forKey: "lastSeededVersion")
-//                        seeder.seedDefaultRecipesIfNeeded()
-//                        print("🌱 Debug: Re-seeded recipes")
-//                    }
-//                    .padding()
-//                    .background(Color.red.opacity(0.7))
-//                    .foregroundColor(.white)
-//                    .clipShape(Circle())
-//                }
-//                .padding()
-//                Spacer()
-//            }
-//        )
-//#endif
+        //#if DEBUG
+        //        .overlay(
+        //            VStack {
+        //                HStack {
+        //                    Spacer()
+        //                    Button("🔄") {
+        //                        let seeder = RecipeSeeder(context: viewContext)
+        //                        UserDefaults.standard.removeObject(forKey: "lastSeededVersion")
+        //                        seeder.seedDefaultRecipesIfNeeded()
+        //                        print("🌱 Debug: Re-seeded recipes")
+        //                    }
+        //                    .padding()
+        //                    .background(Color.red.opacity(0.7))
+        //                    .foregroundColor(.white)
+        //                    .clipShape(Circle())
+        //                }
+        //                .padding()
+        //                Spacer()
+        //            }
+        //        )
+        //#endif
         .background(
             LinearGradient(
                 colors: [
@@ -276,13 +279,13 @@ struct SmartHomeRecipeView: View {
             .ignoresSafeArea()
         )
         .onAppear {
-//#if DEBUG
-//            let count = try? viewContext.count(for: Recipe.fetchRequest())
-//            print("📊 Recipe count: \(count ?? 0)")
-//            
-//            let version = UserDefaults.standard.string(forKey: "lastSeededVersion") ?? "none"
-//            print("📱 Last seeded version: \(version)")
-//#endif
+            //#if DEBUG
+            //            let count = try? viewContext.count(for: Recipe.fetchRequest())
+            //            print("📊 Recipe count: \(count ?? 0)")
+            //
+            //            let version = UserDefaults.standard.string(forKey: "lastSeededVersion") ?? "none"
+            //            print("📱 Last seeded version: \(version)")
+            //#endif
         }
         .toast(position: .top)
         .sheet(isPresented: $showingRecipeSubmission) {
@@ -753,23 +756,23 @@ struct SmartHomeRecipeView: View {
             .animation(.easeInOut(duration: 0.2), value: searchText.isEmpty)
             
             // Filter button
-//            Button(action: {
-//                // TODO: justynx Implement filter functionality
-//            }) {
-//                Image(systemName: "slider.horizontal.3")
-//                    .font(.system(size: 16, weight: .medium))
-//                    .foregroundColor(.primary)
-//            }
-//            .frame(width: 48, height: 48)
-//            .background(
-//                RoundedRectangle(cornerRadius: 14)
-//                    .fill(.ultraThinMaterial)
-//                    .overlay(
-//                        RoundedRectangle(cornerRadius: 14)
-//                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-//                    )
-//            )
-//            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+            //            Button(action: {
+            //                // TODO: justynx Implement filter functionality
+            //            }) {
+            //                Image(systemName: "slider.horizontal.3")
+            //                    .font(.system(size: 16, weight: .medium))
+            //                    .foregroundColor(.primary)
+            //            }
+            //            .frame(width: 48, height: 48)
+            //            .background(
+            //                RoundedRectangle(cornerRadius: 14)
+            //                    .fill(.ultraThinMaterial)
+            //                    .overlay(
+            //                        RoundedRectangle(cornerRadius: 14)
+            //                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            //                    )
+            //            )
+            //            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         }
         .padding(.horizontal, 24)
     }
@@ -800,7 +803,7 @@ struct SmartHomeRecipeView: View {
                         Image(systemName: "xmark")
                             .font(.system(size: 12, weight: .medium))
                         Text("Clear")
-                            .labelMedium() 
+                            .labelMedium()
                     }
                     .foregroundColor(.secondary)
                     .padding(.horizontal, 12)
